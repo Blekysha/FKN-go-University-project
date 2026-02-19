@@ -5,84 +5,74 @@ const config = {
   backgroundColor: "#000000",
   pixelArt: true,
   roundPixels: true,
+
+  scale: {
+    mode: Phaser.Scale.NONE,
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+  },
+
   physics: {
     default: "arcade",
     arcade: {
-      gravity: { y: 900 }, // тянем персонажа вниз, чтобы он падал на пол
+      gravity: { y: 900 },
       debug: false,
     },
   },
-  scene: {
-    preload,
-    create,
-    update,
-  },
+
+  scene: { preload, create, update },
 };
 
-let player;
-let cursors;
-let groundLayer;
+let player, cursors;
 
-const game = new Phaser.Game(config);
+new Phaser.Game(config);
 
 function preload() {
-  // tileset.png — файл с тайлами
   this.load.image("tiles", "assets/tileset.png");
-
-  // testMap.json — файл карты из Tiled
   this.load.tilemapTiledJSON("testMap", "assets/maps/testMap.json");
-
-  // player.png — спрайт персонажа
   this.load.image("player", "assets/player.png");
 }
 
 function create() {
-  // Загружаем карту по ключу testMap
+  //Фон
   const map = this.make.tilemap({ key: "testMap" });
 
-  // ВАЖНО:
-  // 'test tiles' — это ИМЯ набора тайлов в Tiled (внизу справа над картинкой тайлсета).
-  // Если у тебя оно другое, поставь своё.
-  const tileset = map.addTilesetImage("test-tiles", "tiles");
+  const tsName =
+    map.tilesets.length >= 2 ? map.tilesets[1].name : map.tilesets[0].name;
+  const tileset = map.addTilesetImage(tsName, "tiles");
 
-  // Слои фона
-  // Имена должны совпадать с тем, как они названы в списке слоёв в Tiled (справа сверху).
-  map.createLayer("Background", tileset, 0, 0);
-  map.createLayer("Background2", tileset, 0, 0);
+  // Сначала фон, затем предметы
+  const ground = map.createLayer("Ground", tileset, 0, 0);
+  const background = map.createLayer("BackGround", tileset, 0, 0);
 
-  // Слой пола (Ground) — на нём стоят тайлы с collides = true
-  groundLayer = map.createLayer("Ground", tileset, 0, 0);
-  groundLayer.setCollisionByProperty({ collides: true });
+  if (!background)
+    console.warn("Слой BackGround не найден или он не tilelayer.");
+  if (!ground) throw new Error("Слой Ground не найден или он не tilelayer.");
 
-  // Создаём игрока. Координату X можно менять, Y поставим повыше — он упадёт на пол.
-  player = this.physics.add.image(100, 0, "player");
-  player.setScale(2);
+  ground.setCollisionByProperty({ collides: true });
+  ground.setCollisionByProperty({ пол: true });
 
+  // Игрок
+  player = this.physics.add.image(4 * 32, 0, "player");
   player.setCollideWorldBounds(true);
 
-  // Коллизия игрока с полом
-  this.physics.add.collider(player, groundLayer);
+  // уменьшаем физическое тело и сдвигаем его вниз,
+  // чтобы визуально персонаж был "утоплен" в пол
+  player.body.setSize(player.width, player.height - 10);
+  player.body.setOffset(0, 4); //чтоб персонаж не летал
 
-  // Управление клавишами
+  this.physics.add.collider(player, ground);
+
   cursors = this.input.keyboard.createCursorKeys();
 
-  // Камера следует за игроком по уровню
   this.cameras.main.startFollow(player);
   this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+  this.cameras.main.setZoom(3);
 }
 
 function update() {
   const speed = 200;
-
-  // Сбрасываем скорость по X
   player.setVelocityX(0);
 
-  // Движение только влево / вправо
-  if (cursors.left.isDown) {
-    player.setVelocityX(-speed);
-  } else if (cursors.right.isDown) {
-    player.setVelocityX(speed);
-  }
-
-  // Прыжков не делаем: по Y управляет только гравитация+коллизия
+  if (cursors.left.isDown) player.setVelocityX(-speed);
+  else if (cursors.right.isDown) player.setVelocityX(speed);
 }
