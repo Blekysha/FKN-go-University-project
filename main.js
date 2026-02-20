@@ -1,13 +1,14 @@
 const config = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
+  width: 760,
+  height: 480,
   backgroundColor: "#000000",
   pixelArt: true,
   roundPixels: true,
 
+  // чтобы масштабировалось под окно
   scale: {
-    mode: Phaser.Scale.NONE,
+    mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
 
@@ -33,46 +34,109 @@ function preload() {
 }
 
 function create() {
-  //Фон
   const map = this.make.tilemap({ key: "testMap" });
+  const tileset = map.addTilesetImage("tileset", "tiles");
 
-  const tsName =
-    map.tilesets.length >= 2 ? map.tilesets[1].name : map.tilesets[0].name;
-  const tileset = map.addTilesetImage(tsName, "tiles");
-
-  // Сначала фон, затем предметы
-  const ground = map.createLayer("Ground", tileset, 0, 0);
   const background = map.createLayer("BackGround", tileset, 0, 0);
-
   if (!background)
     console.warn("Слой BackGround не найден или он не tilelayer.");
-  if (!ground) throw new Error("Слой Ground не найден или он не tilelayer.");
 
-  ground.setCollisionByProperty({ collides: true });
-  ground.setCollisionByProperty({ пол: true });
+  // игрок
+  player = this.physics.add.image(4 * 32, 100, "player");
+  player.body.allowGravity = false;
 
-  // Игрок
-  player = this.physics.add.image(4 * 32, 0, "player");
+  // Хитбокс "ноги": уже и ниже
+  const bodyW = player.width * 0.45; // ширина тела (подберите)
+  const bodyH = player.height * 0.1; // высота ног (подберите)
+
+  player.body.setSize(bodyW, bodyH);
+  player.body.setOffset(
+    (player.width - bodyW) / 2, // центрируем по X
+    player.height - bodyH // прижимаем вниз (ноги)
+  );
+
+  // мир и границы игрока (с отступом)
+  const margin = 20;
+  this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+  player.body.setBoundsRectangle(
+    new Phaser.Geom.Rectangle(
+      margin,
+      margin,
+      map.widthInPixels - margin * 2,
+      map.heightInPixels - margin * 2
+    )
+  );
   player.setCollideWorldBounds(true);
 
-  // уменьшаем физическое тело и сдвигаем его вниз,
-  // чтобы визуально персонаж был "утоплен" в пол
-  player.body.setSize(player.width, player.height - 10);
-  player.body.setOffset(0, 4); //чтоб персонаж не летал
+  // коридор по Y
+  player.baseY = player.y;
 
-  this.physics.add.collider(player, ground);
+  // --- коллайдеры из Object Layer "Colliders" ---
+  const collidersLayer = map.getObjectLayer("Colliders");
+  const walls = this.physics.add.staticGroup();
 
+  if (!collidersLayer) {
+    console.warn("Object Layer 'Colliders' не найден.");
+  } else {
+    collidersLayer.objects.forEach((o) => {
+      if (!o.width || !o.height) return;
+
+      // Tiled: x/y — левый верхний угол
+      const x = o.x + o.width / 2;
+      const y = o.y + o.height / 2;
+
+      // zone = невидимый прямоугольник без текстуры
+      const zone = this.add.zone(x, y, o.width, o.height);
+      this.physics.add.existing(zone, true); // true => static body
+      walls.add(zone);
+    });
+  }
+
+  this.physics.add.collider(player, walls);
+
+  // клавиши
   cursors = this.input.keyboard.createCursorKeys();
+  this.input.keyboard.addCapture([
+    Phaser.Input.Keyboard.KeyCodes.UP,
+    Phaser.Input.Keyboard.KeyCodes.DOWN,
+    Phaser.Input.Keyboard.KeyCodes.LEFT,
+    Phaser.Input.Keyboard.KeyCodes.RIGHT,
+  ]);
 
+  // камера
   this.cameras.main.startFollow(player);
   this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
   this.cameras.main.setZoom(3);
+
+  this.input.on("pointerdown", () => this.game.canvas.focus());
 }
-
 function update() {
-  const speed = 200;
-  player.setVelocityX(0);
+  const speedX = 135;
+  const speedY = 80;
+  const maxUp = 12;
+  const maxDown = 10;
 
-  if (cursors.left.isDown) player.setVelocityX(-speed);
-  else if (cursors.right.isDown) player.setVelocityX(speed);
+  // X
+  player.setVelocityX(0);
+  if (cursors.left.isDown) player.setVelocityX(-speedX);
+  else if (cursors.right.isDown) player.setVelocityX(speedX);
+
+  // Y
+  player.setVelocityY(0);
+
+  if (cursors.up.isDown && player.y > player.baseY - maxUp) {
+    player.setVelocityY(-speedY);
+  } else if (cursors.down.isDown && player.y < player.baseY + maxDown) {
+    player.setVelocityY(speedY);
+  }
+
+  // жёстко ограничиваем
+  if (player.y < player.baseY - maxUp) {
+    player.y = player.baseY - maxUp;
+    player.body.reset(player.x, player.y);
+  }
+  if (player.y > player.baseY + maxDown) {
+    player.y = player.baseY + maxDown;
+    player.body.reset(player.x, player.y);
+  }
 }
