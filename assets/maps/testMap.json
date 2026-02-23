@@ -213,9 +213,52 @@
          "visible":true,
          "x":0,
          "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "id":6,
+         "name":"Doors",
+         "objects":[
+                {
+                 "height":43.6363636363636,
+                 "id":51,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"locked",
+                         "type":"bool",
+                         "value":false
+                        }, 
+                        {
+                         "name":"targetMap",
+                         "type":"string",
+                         "value":"map_2"
+                        }, 
+                        {
+                         "name":"targetSpawn",
+                         "type":"string",
+                         "value":"spawn_1"
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"door"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":16.9090909090909,
+                 "x":225.818181818182,
+                 "y":70.5454545454545
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
         }],
- "nextlayerid":6,
- "nextobjectid":48,
+ "nextlayerid":7,
+ "nextobjectid":52,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

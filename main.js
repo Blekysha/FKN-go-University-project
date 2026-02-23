@@ -24,6 +24,11 @@ const config = {
 };
 
 let player, cursors;
+let keyE;
+let doors;
+let currentDoor = null;
+
+const inventory = new Set(); // позже заменишь на нормальный инвентарь
 
 new Phaser.Game(config);
 
@@ -45,17 +50,11 @@ function create() {
   player = this.physics.add.image(4 * 32, 100, "player");
   player.body.allowGravity = false;
 
-  // Хитбокс "ноги": уже и ниже
-  const bodyW = player.width * 0.45; // ширина тела (подберите)
-  const bodyH = player.height * 0.1; // высота ног (подберите)
-
+  const bodyW = player.width * 0.45;
+  const bodyH = player.height * 0.1;
   player.body.setSize(bodyW, bodyH);
-  player.body.setOffset(
-    (player.width - bodyW) / 2, // центрируем по X
-    player.height - bodyH // прижимаем вниз (ноги)
-  );
+  player.body.setOffset((player.width - bodyW) / 2, player.height - bodyH);
 
-  // мир и границы игрока (с отступом)
   const margin = 20;
   this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
   player.body.setBoundsRectangle(
@@ -68,10 +67,9 @@ function create() {
   );
   player.setCollideWorldBounds(true);
 
-  // коридор по Y
   player.baseY = player.y;
 
-  // --- коллайдеры из Object Layer "Colliders" ---
+  // --- коллайдеры ---
   const collidersLayer = map.getObjectLayer("Colliders");
   const walls = this.physics.add.staticGroup();
 
@@ -80,28 +78,65 @@ function create() {
   } else {
     collidersLayer.objects.forEach((o) => {
       if (!o.width || !o.height) return;
-
-      // Tiled: x/y — левый верхний угол
       const x = o.x + o.width / 2;
       const y = o.y + o.height / 2;
-
-      // zone = невидимый прямоугольник без текстуры
       const zone = this.add.zone(x, y, o.width, o.height);
-      this.physics.add.existing(zone, true); // true => static body
+      this.physics.add.existing(zone, true);
       walls.add(zone);
     });
   }
-
   this.physics.add.collider(player, walls);
 
-  // клавиши
+  // --- двери ---
+  const doorsLayer = map.getObjectLayer("Doors");
+  doors = this.physics.add.staticGroup();
+
+  function getProp(o, name, def = undefined) {
+    const p = o.properties?.find((x) => x.name === name);
+    return p ? p.value : def;
+  }
+
+  if (!doorsLayer) {
+    console.warn("Object Layer 'Doors' не найден.");
+  } else {
+    doorsLayer.objects.forEach((o) => {
+      if (!o.width || !o.height) return;
+
+      const x = o.x + o.width / 2;
+      const y = o.y + o.height / 2;
+
+      const z = this.add.zone(x, y, o.width, o.height);
+      this.physics.add.existing(z, true);
+
+      z.doorData = {
+        type: getProp(o, "type", "door"),
+        targetMap: getProp(o, "targetMap", ""),
+        targetSpawn: getProp(o, "targetSpawn", ""),
+        locked: !!getProp(o, "locked", false),
+        keyId: getProp(o, "keyId", ""),
+      };
+
+      doors.add(z);
+    });
+  }
+
+  // --- клавиши ---
   cursors = this.input.keyboard.createCursorKeys();
-  this.input.keyboard.addCapture([
-    Phaser.Input.Keyboard.KeyCodes.UP,
-    Phaser.Input.Keyboard.KeyCodes.DOWN,
-    Phaser.Input.Keyboard.KeyCodes.LEFT,
-    Phaser.Input.Keyboard.KeyCodes.RIGHT,
-  ]);
+  keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+
+  // --- подсказка "E" ---
+  hintE = this.add
+    .text(0, 0, "E", {
+      fontFamily: "Arial",
+      fontSize: "16px",
+      color: "#ffffff",
+      backgroundColor: "#000000",
+      padding: { x: 6, y: 3 },
+    })
+    .setOrigin(0.5, 1)
+    .setScrollFactor(1) // ВАЖНО: 1, а не 0
+    .setDepth(9999)
+    .setVisible(false);
 
   // камера
   this.cameras.main.startFollow(player);
@@ -138,5 +173,41 @@ function update() {
   if (player.y > player.baseY + maxDown) {
     player.y = player.baseY + maxDown;
     player.body.reset(player.x, player.y);
+  }
+  // 1) каждый кадр ищем дверь под игроком
+  currentDoor = null;
+  this.physics.overlap(player, doors, (_, doorZone) => {
+    currentDoor = doorZone;
+  });
+
+  // 2) показываем/прячем "E" у двери (в координатах экрана)
+  if (currentDoor) {
+    const cam = this.cameras.main;
+    const wx = currentDoor.x;
+    const wy = currentDoor.y;
+
+    // переводим world -> screen
+    const sx = (wx - cam.worldView.x) * cam.zoom;
+    const sy = (wy - cam.worldView.y) * cam.zoom;
+
+    hintE.setPosition(sx, sy - 6); // чуть выше двери
+    hintE.setVisible(true);
+  } else {
+    hintE.setVisible(false);
+  }
+
+  currentDoor = null;
+  this.physics.overlap(player, doors, (_, doorZone) => {
+    currentDoor = doorZone;
+  });
+
+  if (currentDoor) {
+    hintE.setPosition(
+      currentDoor.x,
+      currentDoor.y - currentDoor.height / 2 - 6
+    );
+    hintE.setVisible(true);
+  } else {
+    hintE.setVisible(false);
   }
 }
