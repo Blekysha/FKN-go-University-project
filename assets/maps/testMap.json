@@ -1,4 +1,12 @@
 { "compressionlevel":-1,
+ "editorsettings":
+    {
+     "export":
+        {
+         "format":"json",
+         "target":"..\/..\/testMap.json"
+        }
+    },
  "height":5,
  "infinite":false,
  "layers":[
@@ -449,7 +457,7 @@
          "name":"Items",
          "objects":[
                 {
-                 "height":29.300395256917,
+                 "height":4.30039525691699,
                  "id":91,
                  "name":"",
                  "properties":[
@@ -471,9 +479,9 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":4.89328063241109,
-                 "x":125.189723320158,
-                 "y":97.7391304347826
+                 "width":4.43873517786561,
+                 "x":125.644268774704,
+                 "y":100.466403162055
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -491,7 +499,7 @@
         {
          "columns":32,
          "firstgid":1,
-         "image":"FKN new\/maps\/tileset.png",
+         "image":"..\/maps\/tileset.png",
          "imageheight":768,
          "imagewidth":1024,
          "margin":0,
