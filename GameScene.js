@@ -32,6 +32,7 @@ function preload() {
   this.load.image("tiles", "assets/tileset.png");
   this.load.tilemapTiledJSON("testMap", "assets/maps/testMap.json");
   this.load.image("player", "assets/player.png");
+  this.load.tilemapTiledJSON("corridor", "assets/maps/corridor.json");
 }
 
 function create() {
@@ -43,15 +44,19 @@ function create() {
     console.warn("Слой BackGround не найден или он не tilelayer.");
 
   // Игрок
-  player = createPlayer(this, 4 * 32, 100);
+  player = createPlayer(this, 4 * 12, 90); //расположение игрока при появлении
   player.setupWorldBounds(map.widthInPixels, map.heightInPixels, 20);
 
-  // Коллизии
-  const walls = buildColliders(this, map, "Colliders");
-  this.physics.add.collider(player.sprite, walls);
+  // Коллизии (сохраняем ссылки, чтобы удалять при смене карты)
+  this.currentWalls = buildColliders(this, map, "Colliders");
+  this.playerCollider = this.physics.add.collider(
+    player.sprite,
+    this.currentWalls
+  );
 
-  // Двери
-  doors = buildDoors(this, map, "Doors");
+  // Двери (тоже сохраняем)
+  this.currentDoors = buildDoors(this, map, "Doors");
+  doors = this.currentDoors;
 
   // Клавиши
   cursors = this.input.keyboard.createCursorKeys();
@@ -95,6 +100,62 @@ function update() {
       return;
     }
 
-    console.log("Переход:", d.targetMap, d.targetSpawn);
+    loadMap(this, d.targetMap, d.targetSpawn);
+  }
+  function loadMap(scene, mapKey, spawnName) {
+    // Удаляем старые стены
+    if (scene.currentWalls) {
+      scene.currentWalls.clear(true, true);
+    }
+
+    // Удаляем старый collider
+    if (scene.playerCollider) {
+      scene.playerCollider.destroy();
+    }
+
+    // Удаляем старые двери
+    if (scene.currentDoors) {
+      scene.currentDoors.clear(true, true);
+    }
+
+    // Загружаем новую карту
+    const newMap = scene.make.tilemap({ key: mapKey });
+    const tileset = newMap.addTilesetImage("tileset", "tiles");
+    const background = newMap.createLayer("BackGround", tileset, 0, 0);
+
+    // Создаём новые стены
+    const newWalls = buildColliders(scene, newMap, "Colliders");
+    scene.currentWalls = newWalls;
+
+    // Создаём новый collider
+    scene.playerCollider = scene.physics.add.collider(player.sprite, newWalls);
+
+    // Создаём новые двери
+    const newDoors = buildDoors(scene, newMap, "Doors");
+    scene.currentDoors = newDoors;
+    doors = newDoors;
+
+    // Обновляем границы мира
+    scene.physics.world.setBounds(
+      0,
+      0,
+      newMap.widthInPixels,
+      newMap.heightInPixels
+    );
+
+    scene.cameras.main.setBounds(
+      0,
+      0,
+      newMap.widthInPixels,
+      newMap.heightInPixels
+    );
+
+    // Спавн
+    const spawnsLayer = newMap.getObjectLayer("Spawns");
+    const spawn = spawnsLayer?.objects?.find((o) => o.name === spawnName);
+
+    if (spawn) {
+      player.sprite.setPosition(spawn.x, spawn.y);
+    }
   }
 }
