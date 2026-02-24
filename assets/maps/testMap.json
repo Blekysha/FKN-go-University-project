@@ -1,11 +1,4 @@
 { "compressionlevel":-1,
- "editorsettings":
-    {
-     "export":
-        {
-         "format":"js"
-        }
-    },
  "height":5,
  "infinite":false,
  "layers":[
@@ -391,9 +384,14 @@
                  "name":"",
                  "properties":[
                         {
+                         "name":"keyId",
+                         "type":"string",
+                         "value":"key_1"
+                        }, 
+                        {
                          "name":"locked",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }, 
                         {
                          "name":"targetMap",
@@ -432,7 +430,7 @@
                  "height":17.6363636363636,
                  "id":55,
                  "name":"spawn_back",
-                 "rotation":0,
+                 "rotation":90,
                  "type":"",
                  "visible":true,
                  "width":11.2727272727273,
@@ -444,9 +442,47 @@
          "visible":true,
          "x":0,
          "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "id":8,
+         "name":"Items",
+         "objects":[
+                {
+                 "height":29.300395256917,
+                 "id":91,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"itemId",
+                         "type":"string",
+                         "value":"key_1"
+                        }, 
+                        {
+                         "name":"sprite",
+                         "type":"string",
+                         "value":"key"
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"key"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":4.89328063241109,
+                 "x":125.189723320158,
+                 "y":97.7391304347826
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
         }],
- "nextlayerid":8,
- "nextobjectid":84,
+ "nextlayerid":9,
+ "nextobjectid":92,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",
@@ -455,7 +491,7 @@
         {
          "columns":32,
          "firstgid":1,
-         "image":"..\/maps\/tileset.png",
+         "image":"FKN new\/maps\/tileset.png",
          "imageheight":768,
          "imagewidth":1024,
          "margin":0,

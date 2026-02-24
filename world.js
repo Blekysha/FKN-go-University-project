@@ -6,6 +6,7 @@
   Отвечает за:
   - создание коллизий из Object Layer (Colliders)
   - создание дверей из Object Layer (Doors)
+  - создание предметов из Object Layer (Items)
   - чтение пользовательских свойств объектов (type, locked, targetMap и т.д.)
 
   Это слой, который связывает карту Tiled с игровой логикой.
@@ -68,4 +69,45 @@ export function buildDoors(scene, map, layerName) {
   });
 
   return doors;
+}
+
+export function buildItems(scene, map, layerName) {
+  const layer = map.getObjectLayer(layerName);
+  const items = scene.physics.add.staticGroup();
+
+  if (!layer) {
+    console.warn(`Object Layer '${layerName}' не найден.`);
+    return items;
+  }
+
+  layer.objects.forEach((o) => {
+    const type = getProp(o, "type", "");
+    if (type !== "key") return;
+
+    const itemId = getProp(o, "itemId", "");
+    const spriteKey = getProp(o, "sprite", "key");
+
+    // Проверяем через registry, не был ли ключ уже собран
+    const inventory = scene.registry.get("inventory") || {};
+    if (inventory[itemId]) {
+      return; // Пропускаем создание ключа, если он уже есть в инвентаре
+    }
+
+    // координаты: для Rect учитываем центр, для Point — x/y как есть
+    const x = o.width ? o.x + o.width / 2 : o.x;
+    const y = o.height ? o.y + o.height / 2 : o.y;
+
+    const img = scene.add.image(x, y, spriteKey).setDepth(900);
+    scene.physics.add.existing(img, true); // static body
+
+    img.itemData = {
+      type,
+      itemId,
+      collected: false,
+    };
+
+    items.add(img);
+  });
+
+  return items;
 }
