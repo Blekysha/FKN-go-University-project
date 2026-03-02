@@ -41,8 +41,9 @@ function preload() {
 }
 
 function create() {
-  // ===== 1) Данные / состояние (без визуала) =====
+  // ===== 1) Данные / состояние =====
   this.inventory = createInventory(this);
+  this.storyState = createStoryState();
 
   // ===== 2) Игровые сущности =====
   this.player = createPlayer(this, 48, 90);
@@ -52,7 +53,7 @@ function create() {
   this.cursors = this.input.keyboard.createCursorKeys();
   this.keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
 
-  // ===== 4) UI (DOM/подсказки и т.п.) =====
+  // ===== 4) UI =====
   this.hintE = createInteractionHint(this);
 
   // ===== 5) Камера =====
@@ -65,36 +66,36 @@ function create() {
     playerSprite: this.player.sprite,
   });
 
-  this.storyState = createStoryState();
+  // Загружаем стартовый уровень до систем, которые зависят от групп (items/doors/npcs)
+  this.levelManager.load("testMap", null);
+
+  // ===== 7) Диалоги / сценарий =====
+  // dialogueManager: решает "что сказать" (сцены/NPC), используя inventory/state
   this.dialogueManager = createDialogueManager(this, {
     inventory: this.inventory,
     state: this.storyState,
   });
 
+  // storySystem: сценарные моменты (интро, триггеры и т.п.)
   this.story = createStorySystem(this, {
     dialogueManager: this.dialogueManager,
   });
 
+  // Интро (блокирует движение, пока диалог открыт — это ожидаемо)
   this.story.playIntroOnce();
 
-  // Загружаем стартовый уровень ДО систем, которые зависят от групп (items/doors)
-  this.levelManager.load("testMap", null);
-
-  // ===== 7) Системы (логика поверх мира) =====
-  // interactionSystem: overlap предметов/дверей, подсказка E, обработка нажатия E
+  // ===== 8) Системы взаимодействий =====
+  // interactionSystem: overlap + подсказка E + обработка E (предметы/двери/позже NPC)
   this.interaction = createInteractionSystem(this, {
     playerSprite: this.player.sprite,
     keyE: this.keyE,
     hint: this.hintE,
     inventory: this.inventory,
     levelManager: this.levelManager,
+    dialogueManager: this.dialogueManager, // пригодится для NPC
   });
 
-  // storySystem: сценарные реплики/триггеры (например, интро)
-  this.story = createStorySystem(this);
-  this.story.playIntroOnce();
-
-  // ===== 8) UX =====
+  // ===== 9) UX =====
   // Фокус на canvas по клику, чтобы ввод с клавиатуры работал стабильно
   this.input.on("pointerdown", () => this.game.canvas.focus());
 }
