@@ -51,7 +51,7 @@ export class DialogueUI {
 
   async _ensureFontLoaded() {
     if (document.fonts?.load) {
-      await document.fonts.load('22px "LCD5x8"');
+      await document.fonts.load('22px "shrift"');
     }
   }
 

@@ -22,6 +22,8 @@ import { createLevelManager } from "./levelManager.js";
 import { createInventory } from "./inventory.js";
 import { createInteractionSystem } from "./interactionSystem.js";
 import { dialogueUI } from "./dialogueUI.js";
+import { createStoryState } from "./storyState.js";
+import { createDialogueManager } from "./dialogueManager.js";
 import { createStorySystem } from "./storySystem.js";
 
 export const GameScene = {
@@ -62,6 +64,18 @@ function create() {
   this.levelManager = createLevelManager(this, {
     playerSprite: this.player.sprite,
   });
+
+  this.storyState = createStoryState();
+  this.dialogueManager = createDialogueManager(this, {
+    inventory: this.inventory,
+    state: this.storyState,
+  });
+
+  this.story = createStorySystem(this, {
+    dialogueManager: this.dialogueManager,
+  });
+
+  this.story.playIntroOnce();
 
   // Загружаем стартовый уровень ДО систем, которые зависят от групп (items/doors)
   this.levelManager.load("testMap", null);

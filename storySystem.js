@@ -1,21 +1,8 @@
-// storySystem.js отвечает только за “сценарные” реплики и триггеры.
-
-import { dialogueUI } from "./dialogueUI.js";
-
-export function createStorySystem(scene) {
-  let started = false;
-
+// storySystem.js
+export function createStorySystem(scene, { dialogueManager }) {
   function playIntroOnce() {
-    if (started) return;
-    started = true;
-
-    dialogueUI.show({
-      speaker: "ГГ",
-      lines: ["Чёрт, опять идти на пару…", "…", "Ладно. Встаю."],
-    });
+    dialogueManager.startScene("intro");
   }
 
-  return {
-    playIntroOnce,
-  };
+  return { playIntroOnce };
 }
