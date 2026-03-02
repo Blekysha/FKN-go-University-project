@@ -1,3 +1,11 @@
+@font-face {
+  font-family: "shrift";
+  src: url("assets/shrift.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -5,7 +13,69 @@ body {
   font-family: Arial, sans-serif;
 }
 
+/* Контейнер игры (если добавил #game в index.html) */
+#game {
+  display: flex;
+  justify-content: center;
+}
+
+/* Phaser canvas */
 canvas {
   display: block;
   margin: 0 auto;
+  image-rendering: pixelated; /* чтобы пиксели были чёткие */
+}
+
+/* ===== Диалоговое окно снизу ===== */
+
+#dialogue {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  padding: 14px 18px;
+  box-sizing: border-box;
+
+  display: none;            /* показываем через JS */
+  z-index: 9999;
+  pointer-events: none;     /* чтобы не мешало управлению в игре */
+}
+
+#dialogue .dialogue-box {
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+
+  background: rgba(0, 0, 0, 0.86);
+  border: 3px solid #ffffff;
+
+  padding: 12px 14px;
+  box-sizing: border-box;
+}
+
+#dialogue .dialogue-name {
+  font-family: "shrift", monospace;
+  font-size: 18px;
+  line-height: 1.1;
+  color: #ffffff;
+  opacity: 0.9;
+  margin-bottom: 8px;
+}
+
+#dialogue .dialogue-text {
+  font-family: "shrift", monospace;
+  font-size: 22px;
+  line-height: 1.2;
+  color: #ffffff;
+  white-space: pre-wrap;
+}
+
+#dialogue .dialogue-hint {
+  margin-top: 10px;
+  font-family: "shrift", monospace;
+  font-size: 16px;
+  line-height: 1.1;
+  color: #ffffff;
+  opacity: 0.7;
 }

@@ -18,6 +18,8 @@
   - хранение инвентаря (только использует его API)
 */
 
+import { dialogueUI } from "./dialogueUI.js";
+
 export function createInteractionSystem(
   scene,
   { playerSprite, keyE, hint, inventory, levelManager }
@@ -64,6 +66,9 @@ export function createInteractionSystem(
   function handleInteract() {
     if (!Phaser.Input.Keyboard.JustDown(keyE)) return;
 
+    // если уже открыт диалог — не обрабатываем новое взаимодействие
+    if (dialogueUI.isOpen()) return;
+
     // 1) предмет
     if (currentItem) {
       const id = currentItem.itemData?.itemId;
@@ -74,7 +79,11 @@ export function createInteractionSystem(
       currentItem.destroy();
       currentItem = null;
 
-      console.log("Подобран предмет:", id);
+      dialogueUI.show({
+        speaker: "Система",
+        lines: [`Получен предмет: ${id}`],
+      });
+
       return;
     }
 
@@ -83,7 +92,10 @@ export function createInteractionSystem(
       const d = currentDoor.doorData;
 
       if (d.locked && !inventory.has(d.keyId)) {
-        console.log("Заперто. Нужен ключ:", d.keyId);
+        dialogueUI.show({
+          speaker: "Система",
+          lines: ["Заперто.", `Нужен ключ: ${d.keyId}`],
+        });
         return;
       }
 

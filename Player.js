@@ -33,10 +33,14 @@ export function createPlayer(scene, x, y) {
       sprite.setCollideWorldBounds(true);
     },
 
-    updateMovement(cursors) {
-      const speed = 80; //скорость игрока
+    updateMovement(cursors, { blocked = false } = {}) {
+      const speed = 80;
 
+      // всегда начинаем с остановки
       sprite.setVelocity(0);
+
+      // если движение заблокировано (например, открыт диалог) — выходим
+      if (blocked) return;
 
       if (cursors.left.isDown) {
         sprite.setVelocityX(-speed);

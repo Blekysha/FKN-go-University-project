@@ -21,6 +21,8 @@ import { createInteractionHint } from "./ui.js";
 import { createLevelManager } from "./levelManager.js";
 import { createInventory } from "./inventory.js";
 import { createInteractionSystem } from "./interactionSystem.js";
+import { dialogueUI } from "./dialogueUI.js";
+import { createStorySystem } from "./storySystem.js";
 
 export const GameScene = {
   preload,
@@ -37,39 +39,35 @@ function preload() {
 }
 
 function create() {
-  // --- Inventory ---
-  // хранит Set и синхронизирует с registry, но GameScene деталей не знает
+  // ===== 1) Данные / состояние (без визуала) =====
   this.inventory = createInventory(this);
 
-  // --- Player ---
+  // ===== 2) Игровые сущности =====
   this.player = createPlayer(this, 48, 90);
-  // ВАЖНО: границы мира теперь выставляет levelManager при загрузке уровня,
-  // а игрок просто включает collideWorldBounds (это останется в Player.js/или тут, если решим).
-  // Здесь ничего не меняем по поведению: player должен быть ограничен bounds.
   this.player.sprite.setCollideWorldBounds(true);
 
-  // --- Input ---
+  // ===== 3) Input =====
   this.cursors = this.input.keyboard.createCursorKeys();
   this.keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
 
-  // --- UI ---
+  // ===== 4) UI (DOM/подсказки и т.п.) =====
   this.hintE = createInteractionHint(this);
 
-  // --- Camera (follow + zoom как было) ---
+  // ===== 5) Камера =====
   this.cameras.main.startFollow(this.player.sprite);
   this.cameras.main.setZoom(3);
 
-  // --- Level Manager ---
-  // управляет загрузкой/сменой карты, уничтожением старых групп, bounds, spawn
+  // ===== 6) Уровни / карта =====
+  // levelManager отвечает за: загрузку/смену карты, создание групп, world bounds, spawn
   this.levelManager = createLevelManager(this, {
     playerSprite: this.player.sprite,
   });
 
-  // стартовый уровень как и раньше: testMap + слой BackGround + коллизии/двери/предметы
+  // Загружаем стартовый уровень ДО систем, которые зависят от групп (items/doors)
   this.levelManager.load("testMap", null);
 
-  // --- Interaction System ---
-  // отвечает за overlap (items/doors), подсказку hintE и обработку E
+  // ===== 7) Системы (логика поверх мира) =====
+  // interactionSystem: overlap предметов/дверей, подсказка E, обработка нажатия E
   this.interaction = createInteractionSystem(this, {
     playerSprite: this.player.sprite,
     keyE: this.keyE,
@@ -78,14 +76,24 @@ function create() {
     levelManager: this.levelManager,
   });
 
-  // UX: фокус на canvas по клику (как было)
+  // storySystem: сценарные реплики/триггеры (например, интро)
+  this.story = createStorySystem(this);
+  this.story.playIntroOnce();
+
+  // ===== 8) UX =====
+  // Фокус на canvas по клику, чтобы ввод с клавиатуры работал стабильно
   this.input.on("pointerdown", () => this.game.canvas.focus());
 }
 
 function update() {
-  // движение игрока остаётся в Player.js
-  this.player.updateMovement(this.cursors);
+  const blocked = dialogueUI.isOpen();
 
-  // вся логика взаимодействий вынесена
+  this.player.updateMovement(this.cursors, { blocked });
+
+  if (blocked) {
+    this.hintE.hide();
+    return;
+  }
+
   this.interaction.update();
 }
