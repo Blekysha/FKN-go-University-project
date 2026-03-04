@@ -322,6 +322,39 @@
                  "width":42.7272727272726,
                  "x":182.363636363636,
                  "y":59.2727272727273
+                }, 
+                {
+                 "height":23.5,
+                 "id":92,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":13.5,
+                 "x":119.625,
+                 "y":86
+                }, 
+                {
+                 "height":13.875,
+                 "id":94,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":14.625,
+                 "x":232.75,
+                 "y":113.25
+                }, 
+                {
+                 "height":12.5,
+                 "id":95,
+                 "name":"",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":11,
+                 "x":235.875,
+                 "y":101.25
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -385,7 +418,7 @@
                 {
                  "height":17.6363636363636,
                  "id":55,
-                 "name":"spawn_back",
+                 "name":"spawn_Vasya",
                  "rotation":90,
                  "type":"",
                  "visible":true,
@@ -428,8 +461,8 @@
                  "type":"",
                  "visible":true,
                  "width":4.43873517786561,
-                 "x":125.644268774704,
-                 "y":100.466403162055
+                 "x":133.894268774704,
+                 "y":104.466403162055
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -438,7 +471,7 @@
          "y":0
         }],
  "nextlayerid":9,
- "nextobjectid":92,
+ "nextobjectid":97,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

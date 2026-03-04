@@ -38,6 +38,7 @@ function preload() {
   this.load.image("player", "assets/player.png");
   this.load.tilemapTiledJSON("corridor", "assets/maps/corridor.json");
   this.load.image("key", "assets/key.png");
+  this.load.tilemapTiledJSON("room_Lera", "assets/maps/room_Lera.json");
 }
 
 function create() {

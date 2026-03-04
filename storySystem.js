@@ -1,4 +1,4 @@
-// storySystem.js
+// storySystem — место, где живёт сценарная логика уровня игры:
 export function createStorySystem(scene, deps = {}) {
   const { dialogueManager } = deps;
 

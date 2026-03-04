@@ -1,4 +1,4 @@
-// storyState.js
+// storyState — хранилище прогресса, чтобы сюжет мог быть условным и помнить прошлое:
 export function createStoryState() {
   return {
     flags: new Set(),
