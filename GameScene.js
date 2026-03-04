@@ -39,6 +39,12 @@ function preload() {
   this.load.tilemapTiledJSON("corridor", "assets/maps/corridor.json");
   this.load.image("key", "assets/key.png");
   this.load.tilemapTiledJSON("room_Lera", "assets/maps/room_Lera.json");
+  this.load.tilemapTiledJSON("perehod", "assets/maps/perehod.json");
+  this.load.tilemapTiledJSON(
+    "university_corridor",
+    "assets/maps/university_corridor.json"
+  );
+  this.load.tilemapTiledJSON("audience", "assets/maps/audience.json");
 }
 
 function create() {

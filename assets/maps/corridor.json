@@ -406,6 +406,43 @@
                  "width":25.25,
                  "x":212.625,
                  "y":64.5
+                }, 
+                {
+                 "height":43.6364,
+                 "id":47,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"keyId",
+                         "type":"string",
+                         "value":"key_1"
+                        }, 
+                        {
+                         "name":"locked",
+                         "type":"bool",
+                         "value":false
+                        }, 
+                        {
+                         "name":"targetMap",
+                         "type":"string",
+                         "value":"perehod"
+                        }, 
+                        {
+                         "name":"targetSpawn",
+                         "type":"string",
+                         "value":"spawn_in_perehod_1"
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"door"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":17.6364,
+                 "x":417.1818,
+                 "y":71.0908909090909
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -439,6 +476,17 @@
                  "width":17.75,
                  "x":225,
                  "y":85
+                }, 
+                {
+                 "height":22,
+                 "id":46,
+                 "name":"spawn_in_corridor_3",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":17.75,
+                 "x":413.090909090909,
+                 "y":88.1818181818182
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -447,7 +495,7 @@
          "y":0
         }],
  "nextlayerid":5,
- "nextobjectid":46,
+ "nextobjectid":48,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",
