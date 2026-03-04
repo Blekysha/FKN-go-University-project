@@ -75,10 +75,7 @@ export function buildItems(scene, map, layerName) {
   const layer = map.getObjectLayer(layerName);
   const items = scene.physics.add.staticGroup();
 
-  if (!layer) {
-    console.warn(`Object Layer '${layerName}' не найден.`);
-    return items;
-  }
+  if (!layer) return; // нет слоя — нет предметов на этой карте, это нормально
 
   layer.objects.forEach((o) => {
     const type = getProp(o, "type", "");
