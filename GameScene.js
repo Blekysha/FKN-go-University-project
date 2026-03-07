@@ -46,6 +46,7 @@ function preload() {
   );
   this.load.tilemapTiledJSON("audience", "assets/maps/audience.json");
   this.load.image("npc_roommate_sit", "assets/npc_roommate_sit.png"); // Коля сидит
+  this.load.image("eye", "assets/eye.png"); //глаз для взаимодействий
 }
 
 function create() {

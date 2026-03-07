@@ -11,14 +11,13 @@
   - обработку нажатия E:
       - подбор предмета
       - проверку двери (locked/key)
-      - разговор с NPC
+      - запуск диалога NPC через dialogueManager
       - загрузку новой карты через levelManager
 
   НЕ отвечает за:
   - движение игрока
   - создание уровня
-  - хранение инвентаря
-  - тексты диалогов
+  - хранение инвентаря (только использует его API)
 */
 
 import { dialogueUI } from "./dialogueUI.js";
@@ -65,10 +64,7 @@ export function createInteractionSystem(
   }
 
   function updateHint() {
-    // приоритет: NPC → предмет → дверь
-    if (currentNpc) {
-      hint.showAt(currentNpc.x, currentNpc.y - 20, "E");
-    } else if (currentItem) {
+    if (currentItem) {
       hint.showAt(currentItem.x, currentItem.y - 14, "E");
     } else if (currentDoor) {
       hint.showAt(
@@ -76,6 +72,8 @@ export function createInteractionSystem(
         currentDoor.y - currentDoor.height / 2 - 6,
         "E"
       );
+    } else if (currentNpc) {
+      hint.showAt(currentNpc.x, currentNpc.y - currentNpc.height / 2 - 6, "E");
     } else {
       hint.hide();
     }
@@ -84,19 +82,10 @@ export function createInteractionSystem(
   function handleInteract() {
     if (!Phaser.Input.Keyboard.JustDown(keyE)) return;
 
-    // если открыт диалог — не начинаем новый
+    // если уже открыт диалог — не обрабатываем новое взаимодействие
     if (dialogueUI.isOpen()) return;
 
-    // 1) NPC
-    if (currentNpc) {
-      const npcId = currentNpc.npcData?.npcId;
-      if (!npcId) return;
-
-      dialogueManager.startNpc(npcId);
-      return;
-    }
-
-    // 2) предмет
+    // 1) предмет
     if (currentItem) {
       const id = currentItem.itemData?.itemId;
       if (!id) return;
@@ -114,7 +103,7 @@ export function createInteractionSystem(
       return;
     }
 
-    // 3) дверь
+    // 2) дверь
     if (currentDoor) {
       const d = currentDoor.doorData;
 
@@ -127,6 +116,22 @@ export function createInteractionSystem(
       }
 
       levelManager.load(d.targetMap, d.targetSpawn);
+      return;
+    }
+
+    // 3) NPC
+    if (currentNpc) {
+      const npcId = currentNpc.npcData?.npcId;
+
+      if (!npcId) {
+        dialogueUI.show({
+          speaker: "Система",
+          lines: ["У NPC не задан npcId."],
+        });
+        return;
+      }
+
+      dialogueManager.startNpc(npcId);
     }
   }
 
