@@ -16,7 +16,7 @@ export function createDialogueManager(scene, { inventory, state }) {
           dialogueUI.show({
             speaker: "Сосед",
             lines: [
-              "О, ты проснулась.",
+              "О, ты проснулся.",
               "Если пойдёшь сейчас — ещё успеешь на пару.",
             ],
           });
@@ -28,7 +28,7 @@ export function createDialogueManager(scene, { inventory, state }) {
           state.incCounter("roommate_talks");
           dialogueUI.show({
             speaker: "Сосед",
-            lines: ["Ключ нашла? Отлично.", "Тогда вперёд."],
+            lines: ["Ключ нашел? Отлично.", "Тогда вперёд."],
           });
           return;
         }

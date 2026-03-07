@@ -45,6 +45,7 @@ function preload() {
     "assets/maps/university_corridor.json"
   );
   this.load.tilemapTiledJSON("audience", "assets/maps/audience.json");
+  this.load.image("npc_roommate_sit", "assets/npc_roommate_sit.png"); // Коля сидит
 }
 
 function create() {

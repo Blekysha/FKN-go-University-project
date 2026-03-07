@@ -7,10 +7,12 @@
   - создание коллизий из Object Layer (Colliders)
   - создание дверей из Object Layer (Doors)
   - создание предметов из Object Layer (Items)
+  - создание NPC из Object Layer (NPCs)
   - чтение пользовательских свойств объектов (type, locked, targetMap и т.д.)
 
   Это слой, который связывает карту Tiled с игровой логикой.
 */
+
 function getProp(o, name, def = undefined) {
   const p = o.properties?.find((x) => x.name === name);
   return p ? p.value : def;
@@ -75,7 +77,7 @@ export function buildItems(scene, map, layerName) {
   const layer = map.getObjectLayer(layerName);
   const items = scene.physics.add.staticGroup();
 
-  if (!layer) return; // нет слоя — нет предметов на этой карте, это нормально
+  if (!layer) return items; // нет слоя — нет предметов на этой карте, это нормально
 
   layer.objects.forEach((o) => {
     const type = getProp(o, "type", "");
@@ -87,7 +89,7 @@ export function buildItems(scene, map, layerName) {
     // Проверяем через registry, не был ли ключ уже собран
     const inventory = scene.registry.get("inventory") || {};
     if (inventory[itemId]) {
-      return; // Пропускаем создание ключа, если он уже есть в инвентаре
+      return;
     }
 
     // координаты: для Rect учитываем центр, для Point — x/y как есть
@@ -95,7 +97,7 @@ export function buildItems(scene, map, layerName) {
     const y = o.height ? o.y + o.height / 2 : o.y;
 
     const img = scene.add.image(x, y, spriteKey).setDepth(900);
-    scene.physics.add.existing(img, true); // static body
+    scene.physics.add.existing(img, true);
 
     img.itemData = {
       type,
@@ -107,4 +109,57 @@ export function buildItems(scene, map, layerName) {
   });
 
   return items;
+}
+
+export function buildNpcs(scene, map, layerName) {
+  const layer = map.getObjectLayer(layerName);
+
+  if (!layer) {
+    return {
+      zones: scene.physics.add.staticGroup(),
+      sprites: scene.add.group(),
+    };
+  }
+
+  const zones = scene.physics.add.staticGroup();
+  const sprites = scene.add.group();
+
+  layer.objects.forEach((o) => {
+    const npcId = getProp(o, "npcId", "");
+    if (!npcId) return;
+
+    const texture = getProp(o, "texture", "");
+    const offsetY = Number(getProp(o, "offsetY", 0));
+    const offsetX = Number(getProp(o, "offsetX", 0));
+
+    // Если объект rectangle — берём его размеры.
+    // Если point — задаём дефолтную зону.
+    const width = o.width || 24;
+    const height = o.height || 24;
+
+    const x = o.width ? o.x + o.width / 2 : o.x;
+    const y = o.height ? o.y + o.height / 2 : o.y;
+
+    // Невидимая зона взаимодействия
+    const zone = scene.add.zone(x, y, width, height);
+    scene.physics.add.existing(zone, true);
+
+    zone.npcData = {
+      npcId,
+    };
+
+    zones.add(zone);
+
+    // Визуальный спрайт NPC, если texture указан
+    if (texture) {
+      const sprite = scene.add
+        .image(x + offsetX, y + offsetY, texture)
+        .setDepth(900);
+      sprites.add(sprite);
+
+      zone.npcData.sprite = sprite;
+    }
+  });
+
+  return { zones, sprites };
 }

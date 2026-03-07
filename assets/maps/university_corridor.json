@@ -74,12 +74,12 @@
                         {
                          "name":"targetMap",
                          "type":"string",
-                         "value":"university_corridor"
+                         "value":"perehod"
                         }, 
                         {
                          "name":"targetSpawn",
                          "type":"string",
-                         "value":"spawn_in_corridor_university_corridor_1"
+                         "value":"spawn_in_perehod_2"
                         }, 
                         {
                          "name":"type",

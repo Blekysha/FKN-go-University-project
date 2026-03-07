@@ -330,7 +330,7 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":13.5,
+                 "width":18.625,
                  "x":119.625,
                  "y":86
                 }, 
@@ -412,6 +412,49 @@
         }, 
         {
          "draworder":"topdown",
+         "id":9,
+         "name":"NPCs",
+         "objects":[
+                {
+                 "height":25.9733711444555,
+                 "id":97,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"npcId",
+                         "type":"string",
+                         "value":"roommate"
+                        }, 
+                        {
+                         "name":"offsetX",
+                         "type":"string",
+                         "value":"-5"
+                        }, 
+                        {
+                         "name":"offsetY",
+                         "type":"string",
+                         "value":"-3"
+                        }, 
+                        {
+                         "name":"texture",
+                         "type":"string",
+                         "value":"npc_roommate_sit"
+                        }],
+                 "rotation":0.846791684125151,
+                 "type":"",
+                 "visible":true,
+                 "width":25.0006128538174,
+                 "x":120.335675703895,
+                 "y":83.0167318465447
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
          "id":7,
          "name":"Spawns",
          "objects":[
@@ -461,8 +504,8 @@
                  "type":"",
                  "visible":true,
                  "width":4.43873517786561,
-                 "x":133.894268774704,
-                 "y":104.466403162055
+                 "x":182.644268774704,
+                 "y":102.216403162055
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -470,8 +513,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":9,
- "nextobjectid":97,
+ "nextlayerid":10,
+ "nextobjectid":98,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

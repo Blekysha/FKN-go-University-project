@@ -91,7 +91,7 @@
                         {
                          "name":"targetSpawn",
                          "type":"string",
-                         "value":"spawn_in_corridor_university_corridor_2"
+                         "value":"spawn_in_university_corridor_2"
                         }, 
                         {
                          "name":"type",

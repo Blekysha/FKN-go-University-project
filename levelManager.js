@@ -5,16 +5,16 @@
 
   Отвечает за:
   - уничтожение текущего уровня (слои/группы/коллайдеры)
-  - создание нового уровня из tilemap: слой BackGround + walls/doors/items
+  - создание нового уровня из tilemap: слой BackGround + walls/doors/items/npcs
   - настройку bounds мира и камеры под размер карты
-  - установка спавна игрока по Object Layer "Spawns" (если указан)
+  - установку спавна игрока по Object Layer "Spawns" (если указан)
 
   НЕ отвечает за:
   - логику "можно ли пройти через дверь" (interactionSystem)
   - логику инвентаря/прогресса (inventory)
 */
 
-import { buildColliders, buildDoors, buildItems } from "./world.js";
+import { buildColliders, buildDoors, buildItems, buildNpcs } from "./world.js";
 
 export function createLevelManager(scene, { playerSprite }) {
   // текущее состояние уровня
@@ -24,6 +24,7 @@ export function createLevelManager(scene, { playerSprite }) {
     walls: null,
     doors: null,
     items: null,
+    npcs: null, // { zones, sprites }
     playerCollider: null,
   };
 
@@ -46,6 +47,12 @@ export function createLevelManager(scene, { playerSprite }) {
     if (state.items) {
       state.items.destroy(true);
       state.items = null;
+    }
+
+    if (state.npcs) {
+      state.npcs.zones?.destroy(true);
+      state.npcs.sprites?.clear(true, true);
+      state.npcs = null;
     }
 
     if (state.layer) {
@@ -93,10 +100,13 @@ export function createLevelManager(scene, { playerSprite }) {
     // двери
     const doors = buildDoors(scene, map, "Doors");
 
-    // предметы (создаются все; фильтрацию "уже собран" будем делать в inventory/interaction)
+    // предметы
     const items = buildItems(scene, map, "Items");
 
-    return { map, background, walls, playerCollider, doors, items };
+    // NPC
+    const npcs = buildNpcs(scene, map, "NPCs");
+
+    return { map, background, walls, playerCollider, doors, items, npcs };
   }
 
   function load(mapKey, spawnName) {
@@ -110,6 +120,7 @@ export function createLevelManager(scene, { playerSprite }) {
     state.playerCollider = built.playerCollider;
     state.doors = built.doors;
     state.items = built.items;
+    state.npcs = built.npcs;
 
     applyBounds(state.map);
     setSpawn(state.map, spawnName);
@@ -128,6 +139,9 @@ export function createLevelManager(scene, { playerSprite }) {
     },
     getItems() {
       return state.items;
+    },
+    getNpcs() {
+      return state.npcs?.zones ?? null;
     },
   };
 }
