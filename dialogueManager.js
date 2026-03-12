@@ -1,80 +1,86 @@
-// dialogueManager.js
+/*
+  dialogueManager.js
+*/
+
 import { dialogueUI } from "./dialogueUI.js";
+import { STORY_SCENES, NPC_DIALOGUES } from "./storyData.js";
 
-export function createDialogueManager(scene, { inventory, state }) {
-  function startNpc(npcId) {
-    if (dialogueUI.isOpen()) return;
-
-    switch (npcId) {
-      case "roommate": {
-        const met = state.hasFlag("met_roommate");
-        const talkCount = state.getCounter("roommate_talks");
-
-        if (!met) {
-          state.setFlag("met_roommate");
-          state.incCounter("roommate_talks");
-          dialogueUI.show({
-            speaker: "Сосед",
-            lines: [
-              "О, ты проснулся.",
-              "Если пойдёшь сейчас — ещё успеешь на пару.",
-            ],
-          });
-          return;
-        }
-
-        // пример ветвления по предмету
-        if (inventory.has("key")) {
-          state.incCounter("roommate_talks");
-          dialogueUI.show({
-            speaker: "Сосед",
-            lines: ["Ключ нашел? Отлично.", "Тогда вперёд."],
-          });
-          return;
-        }
-
-        // пример прогрессии по количеству разговоров
-        state.incCounter("roommate_talks");
-        dialogueUI.show({
-          speaker: "Сосед",
-          lines:
-            talkCount < 2
-              ? ["Собирайся быстрее. Время идёт."]
-              : ["Ну что, идём или опять думаешь?"],
-        });
-        return;
-      }
-
-      default:
-        dialogueUI.show({
-          speaker: "Система",
-          lines: [`NPC "${npcId}" не настроен.`],
-        });
-    }
-  }
-
+export function createDialogueManager(scene, { inventory, state } = {}) {
   function startScene(sceneId) {
     if (dialogueUI.isOpen()) return;
 
-    switch (sceneId) {
-      case "intro": {
-        if (state.hasFlag("intro_played")) return;
-        state.setFlag("intro_played");
+    const sceneData = STORY_SCENES[sceneId];
+    if (!sceneData) {
+      console.warn(`[dialogueManager] Сцена '${sceneId}' не найдена.`);
+      return;
+    }
 
-        dialogueUI.show({
-          speaker: "ГГ",
-          lines: ["Чёрт, опять идти на пару…", "…", "Ладно. Встаю."],
-        });
+    dialogueUI.onChoice = (choice) => {
+      if (choice.nextScene) {
+        startScene(choice.nextScene);
+      }
+    };
+
+    dialogueUI.show(sceneData);
+  }
+
+  function startNpc(npcId) {
+    if (dialogueUI.isOpen()) return;
+
+    const npcData = NPC_DIALOGUES[npcId];
+    if (!npcData) {
+      console.warn(`[dialogueManager] NPC '${npcId}' не найден.`);
+      return;
+    }
+
+    const talkCounterId = `${npcId}_talk_count`;
+    const metFlagId = `met_${npcId}`;
+
+    const hasMet = state?.hasFlag(metFlagId) ?? false;
+
+    let dialogue = null;
+
+    if (!hasMet && npcData.firstMeeting) {
+      state?.setFlag(metFlagId);
+      state?.incCounter(talkCounterId);
+
+      if (npcData.firstMeeting.useScene) {
+        startScene(npcData.firstMeeting.useScene);
         return;
       }
 
-      default:
-        dialogueUI.show({
-          speaker: "Система",
-          lines: [`Сцена "${sceneId}" не настроена.`],
-        });
+      dialogue = npcData.firstMeeting;
+    } else if (inventory?.has("key") && npcData.afterKey) {
+      state?.incCounter(talkCounterId);
+
+      if (npcData.afterKey.useScene) {
+        startScene(npcData.afterKey.useScene);
+        return;
+      }
+
+      dialogue = npcData.afterKey;
+    } else if (npcData.repeat) {
+      state?.incCounter(talkCounterId);
+
+      if (npcData.repeat.useScene) {
+        startScene(npcData.repeat.useScene);
+        return;
+      }
+
+      dialogue = npcData.repeat;
+    } else {
+      dialogue = {
+        speaker: "Система",
+        lines: [`У NPC '${npcId}' не настроен диалог.`],
+      };
     }
+
+    dialogueUI.onChoice = null;
+    dialogueUI.show(dialogue);
   }
 
-  return { startNpc, startScene };
+  return {
+    startScene,
+    startNpc,
+  };
 }

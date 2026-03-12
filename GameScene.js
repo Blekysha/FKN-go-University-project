@@ -50,7 +50,7 @@ function preload() {
 }
 
 function create() {
-  // ===== 1) Данные / состояние =====
+  // ===== 1) Состояние =====
   this.inventory = createInventory(this);
   this.storyState = createStoryState();
 
@@ -58,7 +58,7 @@ function create() {
   this.player = createPlayer(this, 48, 90);
   this.player.sprite.setCollideWorldBounds(true);
 
-  // ===== 3) Input =====
+  // ===== 3) Ввод =====
   this.cursors = this.input.keyboard.createCursorKeys();
   this.keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
 
@@ -69,43 +69,38 @@ function create() {
   this.cameras.main.startFollow(this.player.sprite);
   this.cameras.main.setZoom(3);
 
-  // ===== 6) Уровни / карта =====
-  // levelManager отвечает за: загрузку/смену карты, создание групп, world bounds, spawn
+  // ===== 6) Уровень =====
   this.levelManager = createLevelManager(this, {
     playerSprite: this.player.sprite,
   });
 
-  // Загружаем стартовый уровень до систем, которые зависят от групп (items/doors/npcs)
+  // Стартовая карта должна быть загружена до interactionSystem
   this.levelManager.load("testMap", null);
 
-  // ===== 7) Диалоги / сценарий =====
-  // dialogueManager: решает "что сказать" (сцены/NPC), используя inventory/state
+  // ===== 7) Диалоги и сюжет =====
   this.dialogueManager = createDialogueManager(this, {
     inventory: this.inventory,
     state: this.storyState,
   });
 
-  // storySystem: сценарные моменты (интро, триггеры и т.п.)
   this.story = createStorySystem(this, {
     dialogueManager: this.dialogueManager,
+    state: this.storyState,
   });
 
-  // Интро (блокирует движение, пока диалог открыт — это ожидаемо)
   this.story.playIntroOnce();
 
-  // ===== 8) Системы взаимодействий =====
-  // interactionSystem: overlap + подсказка E + обработка E (предметы/двери/позже NPC)
+  // ===== 8) Взаимодействия =====
   this.interaction = createInteractionSystem(this, {
     playerSprite: this.player.sprite,
     keyE: this.keyE,
     hint: this.hintE,
     inventory: this.inventory,
     levelManager: this.levelManager,
-    dialogueManager: this.dialogueManager, // пригодится для NPC
+    dialogueManager: this.dialogueManager,
   });
 
   // ===== 9) UX =====
-  // Фокус на canvas по клику, чтобы ввод с клавиатуры работал стабильно
   this.input.on("pointerdown", () => this.game.canvas.focus());
 }
 

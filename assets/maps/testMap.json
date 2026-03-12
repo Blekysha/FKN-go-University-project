@@ -423,7 +423,7 @@
                         {
                          "name":"npcId",
                          "type":"string",
-                         "value":"roommate"
+                         "value":"Semyon"
                         }, 
                         {
                          "name":"offsetX",
@@ -449,8 +449,8 @@
                  "type":"",
                  "visible":true,
                  "width":25.0006128538174,
-                 "x":120.335675703895,
-                 "y":83.0167318465447
+                 "x":120.085675703895,
+                 "y":83.1417318465447
                 }],
          "opacity":1,
          "type":"objectgroup",

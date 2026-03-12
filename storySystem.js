@@ -1,20 +1,16 @@
-// storySystem — место, где живёт сценарная логика уровня игры:
-export function createStorySystem(scene, deps = {}) {
-  const { dialogueManager } = deps;
+/*
+  storySystem.js
+*/
 
-  let introPlayed = false;
-
+export function createStorySystem(scene, { dialogueManager, state } = {}) {
   function playIntroOnce() {
-    if (introPlayed) return;
-    introPlayed = true;
+    if (state?.hasFlag("intro_played")) return;
 
-    if (!dialogueManager) {
-      console.warn("[storySystem] dialogueManager не передан");
-      return;
-    }
-
-    dialogueManager.startScene("intro");
+    state?.setFlag("intro_played");
+    dialogueManager?.startScene("intro");
   }
 
-  return { playIntroOnce };
+  return {
+    playIntroOnce,
+  };
 }
