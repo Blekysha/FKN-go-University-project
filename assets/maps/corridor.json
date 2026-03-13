@@ -478,15 +478,15 @@
                  "y":85
                 }, 
                 {
-                 "height":22,
+                 "height":15.875,
                  "id":46,
                  "name":"spawn_in_corridor_3",
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":17.75,
-                 "x":413.090909090909,
-                 "y":88.1818181818182
+                 "width":13.75,
+                 "x":418.715909090909,
+                 "y":95.3068181818182
                 }],
          "opacity":1,
          "type":"objectgroup",

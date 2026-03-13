@@ -50,6 +50,11 @@ export const STORY_SCENES = {
     lines: ["Без ключа не выйти."],
   },
 
+  needTalkToSemyonBeforeExit: {
+    speaker: "Васька",
+    lines: ["Сначала надо поговорить с Семёном."],
+  },
+
   needTalkToSemyon: {
     speaker: "Васька",
     lines: ["Ключ я уже нашёл, но надо поговорить с Семёном."],

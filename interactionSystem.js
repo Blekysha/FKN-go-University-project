@@ -20,11 +20,17 @@
   - хранение инвентаря (только использует его API)
 */
 
+/*
+  interactionSystem.js
+
+  Система взаимодействий.
+*/
+
 import { dialogueUI } from "./dialogueUI.js";
 
 export function createInteractionSystem(
   scene,
-  { playerSprite, keyE, hint, inventory, levelManager, dialogueManager }
+  { playerSprite, keyE, hint, inventory, levelManager, dialogueManager, state }
 ) {
   let currentItem = null;
   let currentDoor = null;
@@ -82,7 +88,6 @@ export function createInteractionSystem(
   function handleInteract() {
     if (!Phaser.Input.Keyboard.JustDown(keyE)) return;
 
-    // если уже открыт диалог — не обрабатываем новое взаимодействие
     if (dialogueUI.isOpen()) return;
 
     // 1) предмет
@@ -107,6 +112,13 @@ export function createInteractionSystem(
     if (currentDoor) {
       const d = currentDoor.doorData;
 
+      // Сначала обязательная проверка разговора с Семёном
+      if (!state?.hasFlag("met_Semyon")) {
+        dialogueManager.startScene("needTalkToSemyonBeforeExit");
+        return;
+      }
+
+      // Дальше старая логика двери
       if (d.locked && !inventory.has(d.keyId)) {
         dialogueUI.show({
           speaker: "Система",

@@ -98,6 +98,7 @@ function create() {
     inventory: this.inventory,
     levelManager: this.levelManager,
     dialogueManager: this.dialogueManager,
+    state: this.storyState,
   });
 
   // ===== 9) UX =====
