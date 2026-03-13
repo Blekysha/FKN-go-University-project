@@ -28,6 +28,7 @@ export class DialogueUI {
     this.choices = [];
     this.active = false;
     this.onChoice = null;
+    this.onComplete = null;
 
     this.currentSpeaker = "";
     this.currentLine = "";
@@ -67,7 +68,12 @@ export class DialogueUI {
     return this.active;
   }
 
-  async show({ speaker = "", lines = [], choices = [] } = {}) {
+  async show({
+    speaker = "",
+    lines = [],
+    choices = [],
+    onComplete = null,
+  } = {}) {
     await this._ensureFontLoaded();
 
     const normalized = Array.isArray(lines)
@@ -77,6 +83,7 @@ export class DialogueUI {
     this.queue = [...normalized];
     this.choices = Array.isArray(choices) ? choices : [];
     this.currentSpeaker = String(speaker ?? "");
+    this.onComplete = onComplete;
 
     this.nameEl.textContent = this.currentSpeaker
       ? `${this.currentSpeaker}:`
@@ -121,6 +128,8 @@ export class DialogueUI {
   hide() {
     this._stopTyping();
 
+    const completeCallback = this.onComplete;
+
     this.active = false;
     this.queue = [];
     this.choices = [];
@@ -128,6 +137,7 @@ export class DialogueUI {
     this.currentLine = "";
     this.printIndex = 0;
     this.onChoice = null;
+    this.onComplete = null;
 
     this.nameEl.textContent = "";
     this.textEl.textContent = "";
@@ -136,6 +146,10 @@ export class DialogueUI {
 
     this.root.style.display = "none";
     this.root.setAttribute("aria-hidden", "true");
+
+    if (typeof completeCallback === "function") {
+      completeCallback();
+    }
   }
 
   destroy() {

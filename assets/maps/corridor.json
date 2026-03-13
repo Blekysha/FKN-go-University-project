@@ -443,6 +443,23 @@
                  "width":17.6364,
                  "x":417.1818,
                  "y":71.0908909090909
+                }, 
+                {
+                 "height":39,
+                 "id":50,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"doorId",
+                         "type":"string",
+                         "value":"toiletDoor"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":25.25,
+                 "x":364.5,
+                 "y":64
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -495,7 +512,7 @@
          "y":0
         }],
  "nextlayerid":5,
- "nextobjectid":48,
+ "nextobjectid":51,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

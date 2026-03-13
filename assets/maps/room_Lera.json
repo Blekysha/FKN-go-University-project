@@ -20,6 +20,54 @@
         }, 
         {
          "draworder":"topdown",
+         "id":6,
+         "name":"NPCs",
+         "objects":[
+                {
+                 "height":25.9734,
+                 "id":52,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"npcId",
+                         "type":"string",
+                         "value":"Sveta"
+                        }, 
+                        {
+                         "name":"offsetX",
+                         "type":"string",
+                         "value":"-5"
+                        }, 
+                        {
+                         "name":"offsetY",
+                         "type":"string",
+                         "value":"-3"
+                        }, 
+                        {
+                         "name":"outline",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"texture",
+                         "type":"string",
+                         "value":"npc_Sveta"
+                        }],
+                 "rotation":0.846792,
+                 "type":"",
+                 "visible":true,
+                 "width":25.0006,
+                 "x":112.408790909091,
+                 "y":83.0133
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
          "id":3,
          "name":"Colliders",
          "objects":[
@@ -399,8 +447,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":6,
- "nextobjectid":52,
+ "nextlayerid":7,
+ "nextobjectid":53,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

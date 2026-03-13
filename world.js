@@ -60,6 +60,7 @@ export function buildDoors(scene, map, layerName) {
     scene.physics.add.existing(z, true);
 
     z.doorData = {
+      doorId: getProp(o, "doorId", ""),
       type: getProp(o, "type", "door"),
       targetMap: getProp(o, "targetMap", ""),
       targetSpawn: getProp(o, "targetSpawn", ""),

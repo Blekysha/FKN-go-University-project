@@ -45,6 +45,49 @@ export const STORY_SCENES = {
     lines: ["Да ну это всё. Сам подготовлюсь."],
   },
 
+  toiletEvent: {
+    speaker: "Система",
+    lines: [
+      "Васька заходит в туалет.",
+      "Умывается холодной водой, приводит себя в порядок.",
+      "Через пару минут он выходит посвежевшим.",
+    ],
+  },
+
+  afterToiletChoice: {
+    speaker: "Васька",
+    lines: ["Так, полегчало. Что дальше?"],
+    choices: [
+      { text: "Пойти к Свете", nextScene: "goToSvetaAfterToilet" },
+      { text: "Вернуться и готовиться", nextScene: "studyAfterToilet" },
+    ],
+  },
+
+  goToSvetaAfterToilet: {
+    speaker: "Васька",
+    lines: ["Ладно, теперь можно и к Свете зайти."],
+  },
+
+  studyAfterToilet: {
+    speaker: "Васька",
+    lines: ["Так-то лучше. Теперь можно спокойно позаниматься."],
+  },
+
+  afterToiletGoStudy: {
+    speaker: "Васька",
+    lines: ["Так, теперь можно и за конспекты сесть."],
+  },
+
+  afterToiletGoSveta: {
+    speaker: "Васька",
+    lines: ["Так, теперь можно идти к Свете."],
+  },
+
+  toiletAlreadyUsed: {
+    speaker: "Васька",
+    lines: ["Я уже умывался."],
+  },
+
   doorNoKey: {
     speaker: "Васька",
     lines: ["Без ключа не выйти."],

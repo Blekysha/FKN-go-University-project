@@ -2,28 +2,6 @@
   interactionSystem.js
 
   Система взаимодействий.
-
-  Отвечает за:
-  - поиск текущего предмета (overlap)
-  - поиск текущей двери (overlap)
-  - поиск текущего NPC (overlap)
-  - управление подсказкой (hint)
-  - обработку нажатия E:
-      - подбор предмета
-      - проверку двери (locked/key)
-      - запуск диалога NPC через dialogueManager
-      - загрузку новой карты через levelManager
-
-  НЕ отвечает за:
-  - движение игрока
-  - создание уровня
-  - хранение инвентаря (только использует его API)
-*/
-
-/*
-  interactionSystem.js
-
-  Система взаимодействий.
 */
 
 import { dialogueUI } from "./dialogueUI.js";
@@ -85,6 +63,93 @@ export function createInteractionSystem(
     }
   }
 
+  function applyToiletEffects() {
+    state.setFlag("visited_toilet");
+    state.incCounter("fatigue", -1);
+    state.incCounter("anxiety", -1);
+  }
+
+  function afterToilet() {
+    const currentGoal = state.getValue("currentGoal", null);
+
+    if (currentGoal === "toilet") {
+      dialogueManager.startScene("afterToiletChoice");
+      return;
+    }
+
+    if (currentGoal === "study") {
+      dialogueManager.startScene("afterToiletGoStudy");
+      return;
+    }
+
+    if (currentGoal === "sveta") {
+      dialogueManager.startScene("afterToiletGoSveta");
+      return;
+    }
+  }
+
+  function useToilet() {
+    if (state.hasFlag("visited_toilet")) {
+      dialogueManager.startScene("toiletAlreadyUsed");
+      return;
+    }
+
+    playerSprite.setVisible(false);
+    if (playerSprite.body) {
+      playerSprite.body.enable = false;
+    }
+
+    dialogueUI.show({
+      speaker: "Система",
+      lines: [
+        "Васька заходит в туалет.",
+        "Умывается холодной водой, приводит себя в порядок.",
+        "Через пару минут он выходит посвежевшим.",
+      ],
+      onComplete: () => {
+        playerSprite.setVisible(true);
+        if (playerSprite.body) {
+          playerSprite.body.enable = true;
+        }
+
+        applyToiletEffects();
+        afterToilet();
+      },
+    });
+  }
+
+  function handleDoor(d) {
+    const doorId = d?.doorId ?? d?.id ?? d?.name ?? null;
+
+    if (doorId === "toiletDoor") {
+      useToilet();
+      return;
+    }
+
+    if (!state?.hasFlag("met_Semyon")) {
+      dialogueManager.startScene("needTalkToSemyonBeforeExit");
+      return;
+    }
+
+    if (d.locked && !inventory.has(d.keyId)) {
+      dialogueUI.show({
+        speaker: "Система",
+        lines: ["Заперто.", `Нужен ключ: ${d.keyId}`],
+      });
+      return;
+    }
+
+    if (!d.targetMap) {
+      dialogueUI.show({
+        speaker: "Система",
+        lines: ["Эта дверь сейчас не используется."],
+      });
+      return;
+    }
+
+    levelManager.load(d.targetMap, d.targetSpawn);
+  }
+
   function handleInteract() {
     if (!Phaser.Input.Keyboard.JustDown(keyE)) return;
 
@@ -111,23 +176,7 @@ export function createInteractionSystem(
     // 2) дверь
     if (currentDoor) {
       const d = currentDoor.doorData;
-
-      // Сначала обязательная проверка разговора с Семёном
-      if (!state?.hasFlag("met_Semyon")) {
-        dialogueManager.startScene("needTalkToSemyonBeforeExit");
-        return;
-      }
-
-      // Дальше старая логика двери
-      if (d.locked && !inventory.has(d.keyId)) {
-        dialogueUI.show({
-          speaker: "Система",
-          lines: ["Заперто.", `Нужен ключ: ${d.keyId}`],
-        });
-        return;
-      }
-
-      levelManager.load(d.targetMap, d.targetSpawn);
+      handleDoor(d);
       return;
     }
 
@@ -147,7 +196,32 @@ export function createInteractionSystem(
     }
   }
 
+  function updateStoryChoiceState() {
+    if (state.hasFlag("choice_set")) return;
+
+    // Если у тебя dialogueManager или storySystem потом сам ставит эти флаги,
+    // этот блок можно будет подстроить под реальные названия.
+    if (state.hasFlag("choice_sveta")) {
+      state.setValue("currentGoal", "sveta");
+      state.setFlag("choice_set");
+      return;
+    }
+
+    if (state.hasFlag("choice_toilet")) {
+      state.setValue("currentGoal", "toilet");
+      state.setFlag("choice_set");
+      return;
+    }
+
+    if (state.hasFlag("choice_study")) {
+      state.setValue("currentGoal", "study");
+      state.setFlag("choice_set");
+      return;
+    }
+  }
+
   function update() {
+    updateStoryChoiceState();
     findItem();
     findDoor();
     findNpc();
