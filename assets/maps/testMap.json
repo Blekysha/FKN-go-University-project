@@ -427,7 +427,7 @@
          "name":"NPCs",
          "objects":[
                 {
-                 "height":25.9733711444555,
+                 "height":73.9221037974407,
                  "id":97,
                  "name":"",
                  "properties":[
@@ -439,12 +439,12 @@
                         {
                          "name":"offsetX",
                          "type":"string",
-                         "value":"-5"
+                         "value":"-7"
                         }, 
                         {
                          "name":"offsetY",
                          "type":"string",
-                         "value":"-3"
+                         "value":"-27"
                         }, 
                         {
                          "name":"outline",
@@ -459,9 +459,9 @@
                  "rotation":0.846791684125151,
                  "type":"",
                  "visible":true,
-                 "width":25.0006128538174,
-                 "x":120.085675703895,
-                 "y":83.1417318465447
+                 "width":32.3890098799158,
+                 "x":43.5454545454545,
+                 "y":46
                 }],
          "opacity":1,
          "type":"objectgroup",
