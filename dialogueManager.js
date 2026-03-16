@@ -16,6 +16,32 @@ export function createDialogueManager(scene, { inventory, state } = {}) {
     }
 
     dialogueUI.onChoice = (choice) => {
+      if (choice.nextScene === "goToSveta") {
+        state?.setFlag("choice_sveta");
+        state?.setValue("currentGoal", "sveta");
+        state?.setFlag("choice_set");
+      }
+
+      if (choice.nextScene === "washFirst") {
+        state?.setFlag("choice_toilet");
+        state?.setValue("currentGoal", "toilet");
+        state?.setFlag("choice_set");
+      }
+
+      if (choice.nextScene === "studyYourself") {
+        state?.setFlag("choice_study");
+        state?.setValue("currentGoal", "study");
+        state?.setFlag("choice_set");
+      }
+
+      if (choice.nextScene === "goToSvetaAfterToilet") {
+        state?.setValue("currentGoal", "sveta");
+      }
+
+      if (choice.nextScene === "studyAfterToilet") {
+        state?.setValue("currentGoal", "study");
+      }
+
       if (choice.nextScene) {
         startScene(choice.nextScene);
       }

@@ -381,6 +381,11 @@
                  "name":"",
                  "properties":[
                         {
+                         "name":"doorId",
+                         "type":"string",
+                         "value":"svetaDoor"
+                        }, 
+                        {
                          "name":"locked",
                          "type":"bool",
                          "value":false
@@ -388,12 +393,12 @@
                         {
                          "name":"targetMap",
                          "type":"string",
-                         "value":"room_Lera"
+                         "value":"room_Sveta"
                         }, 
                         {
                          "name":"targetSpawn",
                          "type":"string",
-                         "value":"spawn_Lera"
+                         "value":"spawn_Sveta"
                         }, 
                         {
                          "name":"type",

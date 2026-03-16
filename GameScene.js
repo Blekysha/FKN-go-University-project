@@ -38,7 +38,7 @@ function preload() {
   this.load.image("player", "assets/player.png");
   this.load.tilemapTiledJSON("corridor", "assets/maps/corridor.json");
   this.load.image("key", "assets/key.png");
-  this.load.tilemapTiledJSON("room_Lera", "assets/maps/room_Lera.json");
+  this.load.tilemapTiledJSON("room_Sveta", "assets/maps/room_Sveta.json");
   this.load.tilemapTiledJSON("perehod", "assets/maps/perehod.json");
   this.load.tilemapTiledJSON(
     "university_corridor",

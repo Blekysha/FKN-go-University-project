@@ -121,16 +121,32 @@ export function createInteractionSystem(
   function handleDoor(d) {
     const doorId = d?.doorId ?? d?.id ?? d?.name ?? null;
 
+    // ===== ТУАЛЕТ =====
     if (doorId === "toiletDoor") {
       useToilet();
       return;
     }
 
+    // ===== ДВЕРЬ СВЕТЫ =====
+    if (doorId === "svetaDoor") {
+      const goal = state?.getValue("currentGoal");
+
+      if (goal !== "sveta") {
+        dialogueUI.show({
+          speaker: "Васька",
+          lines: ["Сейчас не до этого."],
+        });
+        return;
+      }
+    }
+
+    // ===== ОБЯЗАТЕЛЬНЫЙ РАЗГОВОР С СЕМЁНОМ =====
     if (!state?.hasFlag("met_Semyon")) {
       dialogueManager.startScene("needTalkToSemyonBeforeExit");
       return;
     }
 
+    // ===== ПРОВЕРКА КЛЮЧА =====
     if (d.locked && !inventory.has(d.keyId)) {
       dialogueUI.show({
         speaker: "Система",
@@ -139,6 +155,7 @@ export function createInteractionSystem(
       return;
     }
 
+    // ===== ПРОСТО ДВЕРЬ =====
     if (!d.targetMap) {
       dialogueUI.show({
         speaker: "Система",
@@ -176,6 +193,18 @@ export function createInteractionSystem(
     // 2) дверь
     if (currentDoor) {
       const d = currentDoor.doorData;
+      // ограничение двери Светы
+      if (d.doorId === "svetaDoor") {
+        const goal = state?.getValue("currentGoal");
+
+        if (goal !== "sveta") {
+          dialogueUI.show({
+            speaker: "Васька",
+            lines: ["Сейчас не до этого."],
+          });
+          return;
+        }
+      }
       handleDoor(d);
       return;
     }
@@ -196,32 +225,7 @@ export function createInteractionSystem(
     }
   }
 
-  function updateStoryChoiceState() {
-    if (state.hasFlag("choice_set")) return;
-
-    // Если у тебя dialogueManager или storySystem потом сам ставит эти флаги,
-    // этот блок можно будет подстроить под реальные названия.
-    if (state.hasFlag("choice_sveta")) {
-      state.setValue("currentGoal", "sveta");
-      state.setFlag("choice_set");
-      return;
-    }
-
-    if (state.hasFlag("choice_toilet")) {
-      state.setValue("currentGoal", "toilet");
-      state.setFlag("choice_set");
-      return;
-    }
-
-    if (state.hasFlag("choice_study")) {
-      state.setValue("currentGoal", "study");
-      state.setFlag("choice_set");
-      return;
-    }
-  }
-
   function update() {
-    updateStoryChoiceState();
     findItem();
     findDoor();
     findNpc();
