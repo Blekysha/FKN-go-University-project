@@ -99,9 +99,9 @@
                  "name":"",
                  "properties":[
                         {
-                         "name":"keyId",
+                         "name":"doorId",
                          "type":"string",
-                         "value":"key_1"
+                         "value":"audienceDoor"
                         }, 
                         {
                          "name":"locked",
@@ -454,9 +454,57 @@
          "visible":true,
          "x":0,
          "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "id":5,
+         "name":"NPCs",
+         "objects":[
+                {
+                 "height":25.9734,
+                 "id":48,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"npcId",
+                         "type":"string",
+                         "value":"Professor"
+                        }, 
+                        {
+                         "name":"offsetX",
+                         "type":"string",
+                         "value":"-5"
+                        }, 
+                        {
+                         "name":"offsetY",
+                         "type":"string",
+                         "value":"-3"
+                        }, 
+                        {
+                         "name":"outline",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"texture",
+                         "type":"string",
+                         "value":"npc_Professor"
+                        }],
+                 "rotation":0.846792,
+                 "type":"",
+                 "visible":true,
+                 "width":25.0006,
+                 "x":832.1247,
+                 "y":83.7633
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
         }],
- "nextlayerid":5,
- "nextobjectid":46,
+ "nextlayerid":6,
+ "nextobjectid":49,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

@@ -164,6 +164,54 @@
         }, 
         {
          "draworder":"topdown",
+         "id":5,
+         "name":"NPCs",
+         "objects":[
+                {
+                 "height":25.9734,
+                 "id":22,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"npcId",
+                         "type":"string",
+                         "value":"Professor_audience"
+                        }, 
+                        {
+                         "name":"offsetX",
+                         "type":"string",
+                         "value":"-5"
+                        }, 
+                        {
+                         "name":"offsetY",
+                         "type":"string",
+                         "value":"-3"
+                        }, 
+                        {
+                         "name":"outline",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"texture",
+                         "type":"string",
+                         "value":"npc_Professor"
+                        }],
+                 "rotation":0.846792,
+                 "type":"",
+                 "visible":true,
+                 "width":25.0006,
+                 "x":132.1247,
+                 "y":83.5133
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
          "id":2,
          "name":"Doors",
          "objects":[
@@ -210,8 +258,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":5,
- "nextobjectid":20,
+ "nextlayerid":6,
+ "nextobjectid":23,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

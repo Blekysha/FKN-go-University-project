@@ -99,9 +99,9 @@
                  "name":"",
                  "properties":[
                         {
-                         "name":"keyId",
+                         "name":"doorId",
                          "type":"string",
-                         "value":"key_1"
+                         "value":"universityDoor"
                         }, 
                         {
                          "name":"locked",
@@ -130,6 +130,50 @@
                  "x":418.1818,
                  "y":72.5151333333333
                 }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "id":6,
+         "name":"Items",
+         "objects":[
+                {
+                 "height":38.4545454545455,
+                 "id":46,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"itemId",
+                         "type":"string",
+                         "value":"windowRest"
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"interaction"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":46.4545727272727,
+                 "x":55.5908954545455,
+                 "y":64.4090909090909
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "id":7,
+         "name":"NPCs",
+         "objects":[],
          "opacity":1,
          "type":"objectgroup",
          "visible":true,
@@ -423,8 +467,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":5,
- "nextobjectid":46,
+ "nextlayerid":8,
+ "nextobjectid":47,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

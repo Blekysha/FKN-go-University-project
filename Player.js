@@ -23,7 +23,7 @@ export function createPlayer(scene, x, y) {
   sprite.body.setSize(bodyW, bodyH);
   sprite.body.setOffset((sprite.width - bodyW) / 2, sprite.height - bodyH);
 
-  sprite.setDepth(1000); // чтобы всегда был поверх карты
+  sprite.setDepth(1000);
 
   const player = {
     sprite,
@@ -36,10 +36,8 @@ export function createPlayer(scene, x, y) {
     updateMovement(cursors, { blocked = false } = {}) {
       const speed = 80;
 
-      // всегда начинаем с остановки
       sprite.setVelocity(0);
 
-      // если движение заблокировано (например, открыт диалог) — выходим
       if (blocked) return;
 
       if (cursors.left.isDown) {

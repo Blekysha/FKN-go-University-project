@@ -384,6 +384,11 @@
                  "name":"",
                  "properties":[
                         {
+                         "name":"doorId",
+                         "type":"string",
+                         "value":"exitRoomDoor"
+                        }, 
+                        {
                          "name":"keyId",
                          "type":"string",
                          "value":"key_1"
@@ -538,7 +543,7 @@
                  "visible":true,
                  "width":23.7272727272727,
                  "x":124.090909090909,
-                 "y":71.1818181818182
+                 "y":71.0909090909091
                 }],
          "opacity":1,
          "type":"objectgroup",

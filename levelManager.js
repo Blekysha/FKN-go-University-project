@@ -2,29 +2,18 @@
   levelManager.js
 
   Управление уровнем/картой.
-
-  Отвечает за:
-  - уничтожение текущего уровня (слои/группы/коллайдеры)
-  - создание нового уровня из tilemap: слой BackGround + walls/doors/items/npcs
-  - настройку bounds мира и камеры под размер карты
-  - установку спавна игрока по Object Layer "Spawns" (если указан)
-
-  НЕ отвечает за:
-  - логику "можно ли пройти через дверь" (interactionSystem)
-  - логику инвентаря/прогресса (inventory)
 */
 
 import { buildColliders, buildDoors, buildItems, buildNpcs } from "./world.js";
 
 export function createLevelManager(scene, { playerSprite }) {
-  // текущее состояние уровня
   const state = {
     map: null,
-    layer: null, // BackGround
+    backgroundLayer: null,
     walls: null,
     doors: null,
     items: null,
-    npcs: null, // { zones, sprites }
+    npcs: null,
     playerCollider: null,
   };
 
@@ -55,23 +44,20 @@ export function createLevelManager(scene, { playerSprite }) {
       state.npcs = null;
     }
 
-    if (state.layer) {
-      state.layer.destroy();
-      state.layer = null;
+    if (state.backgroundLayer) {
+      state.backgroundLayer.destroy();
+      state.backgroundLayer = null;
     }
 
     state.map = null;
   }
 
   function applyBounds(map) {
-    // bounds физики
     scene.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-
-    // bounds камеры (follow остаётся настроенным в GameScene)
     scene.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
   }
 
-  function setSpawn(map, spawnName) {
+  function setSpawn(map, mapKey, spawnName) {
     if (!spawnName) return;
 
     const spawnsLayer = map.getObjectLayer("Spawns");
@@ -80,7 +66,7 @@ export function createLevelManager(scene, { playerSprite }) {
     if (spawn) {
       playerSprite.setPosition(spawn.x, spawn.y);
     } else {
-      console.warn("Spawn не найден:", spawnName, "на карте", map.key);
+      console.warn("Spawn не найден:", spawnName, "на карте", mapKey);
     }
   }
 
@@ -88,25 +74,29 @@ export function createLevelManager(scene, { playerSprite }) {
     const map = scene.make.tilemap({ key: mapKey });
     const tileset = map.addTilesetImage("tileset", "tiles");
 
-    const background = map.createLayer("BackGround", tileset, 0, 0);
-    if (!background) {
+    const backgroundLayer = map.createLayer("BackGround", tileset, 0, 0);
+    if (!backgroundLayer) {
       console.warn("Слой BackGround не найден или он не tilelayer.");
     }
 
-    // стены/коллизии
     const walls = buildColliders(scene, map, "Colliders");
-    const playerCollider = scene.physics.add.collider(playerSprite, walls);
+    const playerCollider = walls
+      ? scene.physics.add.collider(playerSprite, walls)
+      : null;
 
-    // двери
     const doors = buildDoors(scene, map, "Doors");
-
-    // предметы
     const items = buildItems(scene, map, "Items");
-
-    // NPC
     const npcs = buildNpcs(scene, map, "NPCs");
 
-    return { map, background, walls, playerCollider, doors, items, npcs };
+    return {
+      map,
+      backgroundLayer,
+      walls,
+      playerCollider,
+      doors,
+      items,
+      npcs,
+    };
   }
 
   function load(mapKey, spawnName) {
@@ -115,7 +105,7 @@ export function createLevelManager(scene, { playerSprite }) {
     const built = buildLevel(mapKey);
 
     state.map = built.map;
-    state.layer = built.background;
+    state.backgroundLayer = built.backgroundLayer;
     state.walls = built.walls;
     state.playerCollider = built.playerCollider;
     state.doors = built.doors;
@@ -123,23 +113,24 @@ export function createLevelManager(scene, { playerSprite }) {
     state.npcs = built.npcs;
 
     applyBounds(state.map);
-    setSpawn(state.map, spawnName);
+    setSpawn(state.map, mapKey, spawnName);
   }
 
-  // Публичный API
   return {
     load,
 
-    // доступ к текущим группам/карте для других подсистем
     getMap() {
       return state.map;
     },
+
     getDoors() {
       return state.doors;
     },
+
     getItems() {
       return state.items;
     },
+
     getNpcs() {
       return state.npcs?.zones ?? null;
     },

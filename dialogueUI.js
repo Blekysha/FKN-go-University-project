@@ -58,9 +58,9 @@ export class DialogueUI {
     window.addEventListener("keydown", this._onKeyDown, { passive: false });
   }
 
-  async _ensureFontLoaded() {
+  _ensureFontLoaded() {
     if (document.fonts?.load) {
-      await document.fonts.load('22px "shrift"');
+      document.fonts.load('22px "shrift"').catch(() => {});
     }
   }
 
@@ -68,13 +68,8 @@ export class DialogueUI {
     return this.active;
   }
 
-  async show({
-    speaker = "",
-    lines = [],
-    choices = [],
-    onComplete = null,
-  } = {}) {
-    await this._ensureFontLoaded();
+  show({ speaker = "", lines = [], choices = [], onComplete = null } = {}) {
+    this._ensureFontLoaded();
 
     const normalized = Array.isArray(lines)
       ? lines.map(String)
@@ -97,10 +92,10 @@ export class DialogueUI {
     this.root.setAttribute("aria-hidden", "false");
 
     this._setHint();
-    this.next(true);
+    this.next();
   }
 
-  next(first = false) {
+  next() {
     if (!this.active) return;
 
     this._stopTyping();
@@ -163,7 +158,7 @@ export class DialogueUI {
     this.choicesEl.innerHTML = "";
     this.hintEl.textContent = "Выберите вариант мышкой";
 
-    this.choices.forEach((choice, index) => {
+    this.choices.forEach((choice) => {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "dialogue-choice-btn";

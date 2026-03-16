@@ -1,23 +1,12 @@
 /*
-  GameScene.js
+    GameScene.js
 
-  Основная игровая сцена (координационный слой).
-
-  Отвечает за:
-  - preload ассетов
-  - первичную инициализацию: игрок, input, UI, загрузка стартового уровня
-  - update-цикл: делегирование движения игрока и системы взаимодействия
-
-  НЕ отвечает за:
-  - загрузку/уничтожение уровня (levelManager)
-  - хранение/синхронизацию инвентаря (inventory)
-  - обработку overlap + подсказка + нажатие E (interactionSystem)
-*/
+    Основная игровая сцена (координационный слой).
+  */
 
 import { createPlayer } from "./Player.js";
 import { createInteractionHint } from "./ui.js";
 
-// новые модули (дадим следующими файлами)
 import { createLevelManager } from "./levelManager.js";
 import { createInventory } from "./inventory.js";
 import { createInteractionSystem } from "./interactionSystem.js";
@@ -45,53 +34,44 @@ function preload() {
     "assets/maps/university_corridor.json"
   );
   this.load.tilemapTiledJSON("audience", "assets/maps/audience.json");
-  this.load.image("npc_roommate_sit", "assets/npc_roommate_sit.png"); // Семён сидит
+
+  this.load.image("npc_roommate_sit", "assets/npc_roommate_sit.png"); // Семён
   this.load.image("npc_Sveta", "assets/npc_Sveta.png"); // Света
-  this.load.image("eye", "assets/eye.png"); //глаз для взаимодействий
+  this.load.image("npc_Professor", "assets/npc_Professor.png"); // Профессор
+  this.load.image("eye", "assets/eye.png");
 }
 
 function create() {
-  // ===== 1) Состояние =====
   this.inventory = createInventory(this);
   this.storyState = createStoryState();
 
-  // ===== 2) Игровые сущности =====
   this.player = createPlayer(this, 48, 90);
   this.player.sprite.setCollideWorldBounds(true);
 
-  // ===== 3) Ввод =====
   this.cursors = this.input.keyboard.createCursorKeys();
   this.keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
 
-  // ===== 4) UI =====
   this.hintE = createInteractionHint(this);
 
-  // ===== 5) Камера =====
   this.cameras.main.startFollow(this.player.sprite);
   this.cameras.main.setZoom(3);
 
-  // ===== 6) Уровень =====
   this.levelManager = createLevelManager(this, {
     playerSprite: this.player.sprite,
   });
 
-  // Стартовая карта должна быть загружена до interactionSystem
   this.levelManager.load("testMap", null);
 
-  // ===== 7) Диалоги и сюжет =====
+  this.story = createStorySystem(this, {
+    state: this.storyState,
+  });
+
   this.dialogueManager = createDialogueManager(this, {
     inventory: this.inventory,
     state: this.storyState,
+    story: this.story,
   });
 
-  this.story = createStorySystem(this, {
-    dialogueManager: this.dialogueManager,
-    state: this.storyState,
-  });
-
-  this.story.playIntroOnce();
-
-  // ===== 8) Взаимодействия =====
   this.interaction = createInteractionSystem(this, {
     playerSprite: this.player.sprite,
     keyE: this.keyE,
@@ -102,7 +82,9 @@ function create() {
     state: this.storyState,
   });
 
-  // ===== 9) UX =====
+  // интро запускаем после полной инициализации сцены
+  this.story.playIntroOnce(this.dialogueManager);
+
   this.input.on("pointerdown", () => this.game.canvas.focus());
 }
 

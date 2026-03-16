@@ -2,15 +2,6 @@
   world.js
 
   Модуль работы с объектами карты (Tiled).
-
-  Отвечает за:
-  - создание коллизий из Object Layer (Colliders)
-  - создание дверей из Object Layer (Doors)
-  - создание предметов из Object Layer (Items)
-  - создание NPC из Object Layer (NPCs)
-  - чтение пользовательских свойств объектов (type, locked, targetMap и т.д.)
-
-  Это слой, который связывает карту Tiled с игровой логикой.
 */
 
 function getProp(o, name, def = undefined) {
@@ -61,6 +52,7 @@ export function buildDoors(scene, map, layerName) {
 
     z.doorData = {
       doorId: getProp(o, "doorId", ""),
+      objectName: o.name || "",
       type: getProp(o, "type", "door"),
       targetMap: getProp(o, "targetMap", ""),
       targetSpawn: getProp(o, "targetSpawn", ""),
@@ -78,7 +70,10 @@ export function buildItems(scene, map, layerName) {
   const layer = map.getObjectLayer(layerName);
   const items = scene.physics.add.staticGroup();
 
-  if (!layer) return items;
+  if (!layer) {
+    console.warn(`Object Layer '${layerName}' не найден.`);
+    return items;
+  }
 
   layer.objects.forEach((o) => {
     const type = getProp(o, "type", "");
@@ -88,8 +83,7 @@ export function buildItems(scene, map, layerName) {
     if (type === "key") {
       const spriteKey = getProp(o, "sprite", "key");
 
-      const inventory = scene.registry.get("inventory") || {};
-      if (inventory[itemId]) {
+      if (scene.inventory?.has?.(itemId)) {
         return;
       }
 
@@ -102,6 +96,7 @@ export function buildItems(scene, map, layerName) {
       img.itemData = {
         type,
         itemId,
+        objectName: o.name || "",
         collected: false,
       };
 
@@ -119,7 +114,23 @@ export function buildItems(scene, map, layerName) {
 
       zone.itemData = {
         type: "interaction",
-        itemId: "studyDesk",
+        itemId,
+        objectName: o.name || "",
+      };
+
+      items.add(zone);
+    }
+    // ===== ПОДОКОННИК =====
+    if (itemId === "windowRest") {
+      const x = o.width ? o.x + o.width / 2 : o.x;
+      const y = o.height ? o.y + o.height / 2 : o.y;
+
+      const zone = scene.add.zone(x, y, o.width || 32, o.height || 32);
+      scene.physics.add.existing(zone, true);
+
+      zone.itemData = {
+        type: "interaction",
+        itemId: "windowRest",
       };
 
       items.add(zone);
@@ -133,6 +144,7 @@ export function buildNpcs(scene, map, layerName) {
   const layer = map.getObjectLayer(layerName);
 
   if (!layer) {
+    console.warn(`Object Layer '${layerName}' не найден.`);
     return {
       zones: scene.physics.add.staticGroup(),
       sprites: scene.add.group(),
@@ -150,31 +162,28 @@ export function buildNpcs(scene, map, layerName) {
     const offsetY = Number(getProp(o, "offsetY", 0));
     const offsetX = Number(getProp(o, "offsetX", 0));
 
-    // Если объект rectangle — берём его размеры.
-    // Если point — задаём дефолтную зону.
     const width = o.width || 24;
     const height = o.height || 24;
 
     const x = o.width ? o.x + o.width / 2 : o.x;
     const y = o.height ? o.y + o.height / 2 : o.y;
 
-    // Невидимая зона взаимодействия
     const zone = scene.add.zone(x, y, width, height);
     scene.physics.add.existing(zone, true);
 
     zone.npcData = {
       npcId,
+      objectName: o.name || "",
     };
 
     zones.add(zone);
 
-    // Визуальный спрайт NPC, если texture указан
     if (texture) {
       const sprite = scene.add
         .image(x + offsetX, y + offsetY, texture)
         .setDepth(900);
-      sprites.add(sprite);
 
+      sprites.add(sprite);
       zone.npcData.sprite = sprite;
     }
   });

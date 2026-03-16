@@ -1,8 +1,4 @@
-/*
-  interactionSystem.js
-
-  Система взаимодействий.
-*/
+// interactionSystem.js
 
 import { dialogueUI } from "./dialogueUI.js";
 
@@ -50,43 +46,47 @@ export function createInteractionSystem(
   function updateHint() {
     if (currentItem) {
       hint.showAt(currentItem.x, currentItem.y - 14, "E");
-    } else if (currentDoor) {
+      return;
+    }
+
+    if (currentDoor) {
       hint.showAt(
         currentDoor.x,
         currentDoor.y - currentDoor.height / 2 - 6,
         "E"
       );
-    } else if (currentNpc) {
+      return;
+    }
+
+    if (currentNpc) {
       hint.showAt(currentNpc.x, currentNpc.y - currentNpc.height / 2 - 6, "E");
-    } else {
-      hint.hide();
-    }
-  }
-
-  function applyToiletEffects() {
-    state.setFlag("visited_toilet");
-    state.incCounter("fatigue", -1);
-    state.incCounter("anxiety", -1);
-  }
-
-  function afterToilet() {
-    const currentGoal = state.getValue("currentGoal", null);
-
-    if (currentGoal === "toilet") {
-      dialogueManager.startScene("afterToiletChoice");
       return;
     }
 
-    if (currentGoal === "study") {
-      dialogueManager.startScene("afterToiletGoStudy");
-      return;
+    hint.hide();
+  }
+
+  function openSceneWithPlayerHidden(sceneId, { afterComplete = null } = {}) {
+    if (dialogueUI.isOpen()) return;
+
+    playerSprite.setVisible(false);
+    if (playerSprite.body) {
+      playerSprite.body.enable = false;
     }
 
-    if (currentGoal === "sveta") {
-      dialogueManager.startScene("afterToiletGoSveta");
-      return;
-    }
+    dialogueManager.startScene(sceneId, {
+      onComplete: () => {
+        playerSprite.setVisible(true);
+        if (playerSprite.body) {
+          playerSprite.body.enable = true;
+        }
+
+        afterComplete?.();
+      },
+    });
   }
+
+  /* ===== ТУАЛЕТ ===== */
 
   function useToilet() {
     if (state.hasFlag("visited_toilet")) {
@@ -94,77 +94,44 @@ export function createInteractionSystem(
       return;
     }
 
-    playerSprite.setVisible(false);
-    if (playerSprite.body) {
-      playerSprite.body.enable = false;
-    }
-
-    dialogueUI.show({
-      speaker: "Система",
-      lines: [
-        "Васька заходит в туалет.",
-        "Умывается холодной водой, приводит себя в порядок.",
-        "Через пару минут он выходит посвежевшим.",
-      ],
-      onComplete: () => {
-        playerSprite.setVisible(true);
-        if (playerSprite.body) {
-          playerSprite.body.enable = true;
+    openSceneWithPlayerHidden("toiletEvent", {
+      afterComplete: () => {
+        const goal = state.getValue("currentGoal");
+        if (goal === "toilet") {
+          dialogueManager.startScene("afterToiletChoice");
         }
-
-        applyToiletEffects();
-        afterToilet();
       },
     });
   }
 
-  function handleDoor(d) {
-    const doorId = d?.doorId ?? d?.id ?? d?.name ?? null;
+  /* ===== ДВЕРИ ===== */
 
-    // ===== ТУАЛЕТ =====
+  function handleDoor(d) {
+    const doorId = d?.doorId ?? null;
+
     if (doorId === "toiletDoor") {
       useToilet();
       return;
     }
 
-    // ===== ДВЕРЬ СВЕТЫ =====
-    if (doorId === "svetaDoor") {
-      const goal = state?.getValue("currentGoal");
+    if (!state.hasFlag("met_Semyon")) {
+      dialogueManager.startScene("needTalkToSemyonBeforeExit");
+      return;
+    }
 
-      if (goal !== "sveta") {
+    if (doorId === "svetaDoor") {
+      const alreadyVisitedSveta = state.hasFlag("visited_sveta");
+      const goal = state.getValue("currentGoal");
+
+      if (!alreadyVisitedSveta && goal !== "sveta") {
         dialogueUI.show({
           speaker: "Васька",
-          lines: ["Сейчас не до этого."],
+          lines: ["Сейчас лучше заняться другим."],
         });
         return;
       }
     }
 
-    // ===== ОБЯЗАТЕЛЬНЫЙ РАЗГОВОР С СЕМЁНОМ =====
-    if (!state?.hasFlag("met_Semyon")) {
-      dialogueManager.startScene("needTalkToSemyonBeforeExit");
-      return;
-    }
-
-    // ===== ПРОВЕРКА КЛЮЧА =====
-    if (d.locked && !inventory.has(d.keyId)) {
-      dialogueUI.show({
-        speaker: "Система",
-        lines: ["Заперто.", `Нужен ключ: ${d.keyId}`],
-      });
-      return;
-    }
-
-    // ===== ПРОСТО ДВЕРЬ =====
-    if (!d.targetMap) {
-      dialogueUI.show({
-        speaker: "Система",
-        lines: ["Эта дверь сейчас не используется."],
-      });
-      return;
-    }
-
-    // выход из коридора общаги
     if (doorId === "exitDormDoor") {
       const studied = state.hasFlag("studied_exam");
       const visitedSveta = state.hasFlag("visited_sveta");
@@ -178,73 +145,89 @@ export function createInteractionSystem(
       }
     }
 
+    if (["wrongDoor", "stairsDoor", "leftDormDoor"].includes(doorId)) {
+      dialogueManager.startScene("wrongDoor");
+      return;
+    }
+
+    if (d.locked && !inventory.has(d.keyId)) {
+      dialogueUI.show({
+        speaker: "Система",
+        lines: ["Заперто.", `Нужен ключ: ${d.keyId}`],
+      });
+      return;
+    }
+
     levelManager.load(d.targetMap, d.targetSpawn);
   }
+
+  /* ===== ПРЕДМЕТЫ ===== */
+
+  function handleItem(item) {
+    const id = item.itemData?.itemId;
+
+    if (!id) return;
+
+    if (id === "studyDesk") {
+      if (state.hasFlag("studied_exam")) {
+        dialogueUI.show({
+          speaker: "Васька",
+          lines: ["Я уже позанимался."],
+        });
+        return;
+      }
+
+      const goal = state.getValue("currentGoal");
+      if (goal !== "study") {
+        dialogueUI.show({
+          speaker: "Васька",
+          lines: ["Сейчас мне нужно заняться другим."],
+        });
+        return;
+      }
+
+      dialogueManager.startScene("studySession");
+      return;
+    }
+
+    if (id === "windowRest") {
+      if (state.hasFlag("visited_window")) {
+        dialogueManager.startScene("windowAlreadyUsed");
+        return;
+      }
+
+      dialogueManager.startScene("windowRestEvent");
+      return;
+    }
+
+    inventory.add(id);
+
+    item.destroy();
+    currentItem = null;
+
+    dialogueUI.show({
+      speaker: "Система",
+      lines: [`Получен предмет: ${id}`],
+    });
+  }
+
+  /* ===== НАЖАТИЕ E ===== */
 
   function handleInteract() {
     if (!Phaser.Input.Keyboard.JustDown(keyE)) return;
 
     if (dialogueUI.isOpen()) return;
 
-    // 1) предмет
     if (currentItem) {
-      const id = currentItem.itemData?.itemId;
-      if (!id) return;
-
-      // ===== УЧЁБА =====
-      if (id === "studyDesk") {
-        const goal = state?.getValue("currentGoal");
-
-        if (goal !== "study") {
-          dialogueUI.show({
-            speaker: "Васька",
-            lines: ["Сейчас не до учёбы."],
-          });
-          return;
-        }
-
-        dialogueManager.startScene("studySession");
-
-        state.setFlag("studied_exam");
-        state.incCounter("anxiety", -1);
-
-        return;
-      }
-
-      // ===== ОБЫЧНЫЙ ПРЕДМЕТ =====
-      inventory.add(id);
-
-      currentItem.destroy();
-      currentItem = null;
-
-      dialogueUI.show({
-        speaker: "Система",
-        lines: [`Получен предмет: ${id}`],
-      });
-
+      handleItem(currentItem);
       return;
     }
 
-    // 2) дверь
     if (currentDoor) {
-      const d = currentDoor.doorData;
-      // ограничение двери Светы
-      if (d.doorId === "svetaDoor") {
-        const goal = state?.getValue("currentGoal");
-
-        if (goal !== "sveta") {
-          dialogueUI.show({
-            speaker: "Васька",
-            lines: ["Сейчас не до этого."],
-          });
-          return;
-        }
-      }
-      handleDoor(d);
+      handleDoor(currentDoor.doorData);
       return;
     }
 
-    // 3) NPC
     if (currentNpc) {
       const npcId = currentNpc.npcData?.npcId;
 
@@ -264,6 +247,7 @@ export function createInteractionSystem(
     findItem();
     findDoor();
     findNpc();
+
     updateHint();
     handleInteract();
   }

@@ -1,10 +1,11 @@
 /*
   storyData.js
-
-  Данные сюжета и диалогов.
+  Сценарные сцены и NPC-диалоги
 */
 
 export const STORY_SCENES = {
+  /* ===== УТРО В КОМНАТЕ ===== */
+
   intro: {
     speaker: "Васька",
     lines: [
@@ -14,7 +15,7 @@ export const STORY_SCENES = {
     ],
   },
 
-  semyonExamTalk: {
+  SemyonExamTalk: {
     speaker: "Семён",
     lines: [
       "О, братан, проснулся! Экзамен сегодня в 16:00, забыл?",
@@ -23,74 +24,37 @@ export const STORY_SCENES = {
       "Она там по картам раскладывает, судьбу предсказывает.",
       "Может, сходишь? А то вид у тебя — как будто уже не сдал.",
     ],
+
+    onComplete: (state) => {
+      state?.setFlag("met_Semyon");
+    },
+
     choices: [
-      { text: "Сразу пойти к Свете", nextScene: "goToSveta" },
-      { text: "Сначала умыться", nextScene: "washFirst" },
-      { text: "Готовиться самому", nextScene: "studyYourself" },
+      {
+        text: "Сразу пойти к Свете",
+        nextScene: "goToSveta",
+        effects: [
+          { type: "setValue", id: "currentGoal", value: "sveta" },
+          { type: "setFlag", id: "choice_set" },
+        ],
+      },
+      {
+        text: "Сначала умыться",
+        nextScene: "washFirst",
+        effects: [
+          { type: "setValue", id: "currentGoal", value: "toilet" },
+          { type: "setFlag", id: "choice_set" },
+        ],
+      },
+      {
+        text: "Готовиться самому",
+        nextScene: "studyYourself",
+        effects: [
+          { type: "setValue", id: "currentGoal", value: "study" },
+          { type: "setFlag", id: "choice_set" },
+        ],
+      },
     ],
-  },
-
-  goToSveta: {
-    speaker: "Васька",
-    lines: ["Ладно, схожу. Чё терять-то?", "Где там её комната?"],
-  },
-
-  washFirst: {
-    speaker: "Васька",
-    lines: ["Сначала умоюсь."],
-  },
-
-  studyYourself: {
-    speaker: "Васька",
-    lines: ["Да ну это всё. Сам подготовлюсь."],
-  },
-
-  toiletEvent: {
-    speaker: "Система",
-    lines: [
-      "Васька заходит в туалет.",
-      "Умывается холодной водой, приводит себя в порядок.",
-      "Через пару минут он выходит посвежевшим.",
-    ],
-  },
-
-  afterToiletChoice: {
-    speaker: "Васька",
-    lines: ["Так, полегчало. Что дальше?"],
-    choices: [
-      { text: "Пойти к Свете", nextScene: "goToSvetaAfterToilet" },
-      { text: "Вернуться и готовиться", nextScene: "studyAfterToilet" },
-    ],
-  },
-
-  goToSvetaAfterToilet: {
-    speaker: "Васька",
-    lines: ["Ладно, теперь можно и к Свете зайти."],
-  },
-
-  studyAfterToilet: {
-    speaker: "Васька",
-    lines: ["Так-то лучше. Теперь можно спокойно позаниматься."],
-  },
-
-  afterToiletGoStudy: {
-    speaker: "Васька",
-    lines: ["Так, теперь можно и за конспекты сесть."],
-  },
-
-  afterToiletGoSveta: {
-    speaker: "Васька",
-    lines: ["Так, теперь можно идти к Свете."],
-  },
-
-  toiletAlreadyUsed: {
-    speaker: "Васька",
-    lines: ["Я уже умывался."],
-  },
-
-  doorNoKey: {
-    speaker: "Васька",
-    lines: ["Без ключа не выйти."],
   },
 
   needTalkToSemyonBeforeExit: {
@@ -98,50 +62,352 @@ export const STORY_SCENES = {
     lines: ["Сначала надо поговорить с Семёном."],
   },
 
-  needTalkToSemyon: {
+  /* ===== ТУАЛЕТ ===== */
+
+  washFirst: {
     speaker: "Васька",
-    lines: ["Ключ я уже нашёл, но надо поговорить с Семёном."],
+    lines: ["Пойду умоюсь сначала."],
+  },
+
+  toiletEvent: {
+    speaker: "Система",
+    lines: [
+      "Васька заходит в туалет.",
+      "Умывается холодной водой.",
+      "Чистит зубы.",
+      "Через пару минут выходит посвежевшим.",
+    ],
+    onComplete: (state) => {
+      state?.setFlag("visited_toilet");
+      state?.incCounter("fatigue", -1);
+      state?.incCounter("anxiety", -1);
+    },
+  },
+
+  afterToiletChoice: {
+    speaker: "Васька",
+    lines: ["Так, полегчало. Что дальше?"],
+
+    choices: [
+      {
+        text: "Пойти к Свете",
+        nextScene: "goToSvetaAfterToilet",
+        effects: [{ type: "setValue", id: "currentGoal", value: "sveta" }],
+      },
+      {
+        text: "Вернуться учиться",
+        nextScene: "studyAfterToilet",
+        effects: [{ type: "setValue", id: "currentGoal", value: "study" }],
+      },
+    ],
+  },
+
+  toiletAlreadyUsed: {
+    speaker: "Васька",
+    lines: ["Я уже умывался."],
+  },
+
+  /* ===== УЧЁБА ===== */
+
+  studyYourself: {
+    speaker: "Васька",
+    lines: ["Да ну эту эзотерику. Сам разберусь."],
+  },
+
+  studyAfterToilet: {
+    speaker: "Васька",
+    lines: ["Теперь можно спокойно позаниматься."],
   },
 
   studySession: {
     speaker: "Васька",
     lines: [
       "Ладно... надо собраться.",
-      "Немного повторю конспекты.",
-      "Вроде стало спокойнее.",
+      "Открою конспекты.",
+      "Вроде стало понятнее.",
+      "Хотя мысль о Свете всё равно не отпускает.",
     ],
+    onComplete: (state) => {
+      state?.incCounter("preparation", 1);
+      state?.incCounter("fatigue", 1);
+      state?.setFlag("studied_exam");
+    },
+    nextScene: "afterStudyChoice",
+  },
+
+  afterStudyChoice: {
+    speaker: "Васька",
+    lines: ["Так. Я уже хоть немного подготовился. Что дальше?"],
+    choices: [
+      {
+        text: "Идти в универ",
+        nextScene: "goToUniversity",
+        effects: [{ type: "setValue", id: "currentGoal", value: "university" }],
+      },
+      {
+        text: "Всё-таки зайти к Свете",
+        nextScene: "goToSvetaAfterStudy",
+        effects: [{ type: "setValue", id: "currentGoal", value: "sveta" }],
+      },
+    ],
+  },
+
+  goToUniversity: {
+    speaker: "Васька",
+    lines: ["Пора выдвигаться в универ."],
+  },
+
+  goToSvetaAfterStudy: {
+    speaker: "Васька",
+    lines: ["Может, всё-таки зайти к Свете перед выходом..."],
+  },
+
+  /* ===== СВЕТА ===== */
+
+  goToSveta: {
+    speaker: "Васька",
+    lines: ["Ладно, схожу. Чё терять-то?"],
+  },
+
+  goToSvetaAfterToilet: {
+    speaker: "Васька",
+    lines: ["Ладно, теперь можно и к Свете зайти."],
   },
 
   svetaFortuneTalk: {
     speaker: "Света",
     lines: [
-      "Заходи. Семён уже сказал, что ты можешь прийти.",
-      "Вижу, ты нервничаешь из-за экзамена.",
-      "Скажу так: сдашь. Но день у тебя будет непростой.",
-      "Не накручивай себя. Иногда лучше просто выдохнуть и идти дальше.",
+      "Заходи, Васька.",
+      "Я знала, что ты придёшь.",
+      "Экзамен ты сдашь.",
+      "Но всё зависит от твоих решений.",
+    ],
+    choices: [
+      {
+        text: "Остаться на чай",
+        nextScene: "svetaTea",
+      },
+      {
+        text: "Пойти к Семёну",
+        nextScene: "goBackToSemyon",
+      },
+      {
+        text: "Пойти учиться",
+        nextScene: "studyAfterSveta",
+      },
     ],
   },
 
-  afterSvetaTalk: {
+  svetaTea: {
+    speaker: "Света",
+    lines: ["Садись, чай попьём.", "Иногда лучше разгрузить голову."],
+    onComplete: (state) => {
+      state?.incCounter("anxiety", -2);
+      state?.incCounter("fatigue", -1);
+      state?.setFlag("visited_sveta");
+    },
+    nextScene: "goToUniversity",
+  },
+
+  studyAfterSveta: {
     speaker: "Васька",
-    lines: ["Странная она, конечно...", "Но вроде и правда стало спокойнее."],
+    lines: ["Пойду я. Сам ещё конспекты посмотрю."],
+    onComplete: (state) => {
+      state?.setFlag("visited_sveta");
+      state?.incCounter("anxiety", 1);
+      state?.setValue("currentGoal", "study");
+    },
+  },
+
+  /* ===== СЕМЁН ПОСЛЕ СВЕТЫ ===== */
+
+  goBackToSemyon: {
+    speaker: "Васька",
+    lines: ["Пойду обратно к Семёну."],
+
+    onComplete: (state) => {
+      state?.setFlag("visited_sveta");
+      state?.incCounter("anxiety", -1);
+      state?.setValue("currentGoal", "semyon_after_sveta");
+    },
+  },
+
+  SemyonAfterSveta: {
+    speaker: "Семён",
+    lines: ["О, вернулся!", "Ну чё, нагадала тебе Светка?"],
+
+    onComplete: (state) => {
+      state?.setFlag("talkedAfterSveta");
+    },
+
+    choices: [
+      {
+        text: "Поболтать о ерунде",
+        nextScene: "SemyonFunTalk",
+      },
+      {
+        text: "Поговорить об учёбе",
+        nextScene: "SemyonStudyTalk",
+      },
+    ],
+  },
+
+  SemyonFunTalk: {
+    speaker: "Семён",
+    lines: ["Ладно, забей.", "Иногда надо просто выдохнуть."],
+    onComplete: (state) => {
+      state?.incCounter("social", 1);
+    },
+    nextScene: "goToUniversity",
+  },
+
+  SemyonStudyTalk: {
+    speaker: "Семён",
+    lines: [
+      "Главное — не паниковать.",
+      "Если билет нормальный попадётся — сдашь.",
+    ],
+    onComplete: (state) => {
+      state?.incCounter("preparation", 1);
+      state?.incCounter("social", 1);
+    },
+    nextScene: "goToUniversity",
+  },
+
+  /* ===== ПОДОКОННИК ===== */
+
+  windowRestEvent: {
+    speaker: "Васька",
+    lines: [
+      "Хм... можно немного посидеть.",
+      "Тихо тут.",
+      "Вроде даже полегчало.",
+    ],
+    onComplete: (state) => {
+      state?.setFlag("visited_window");
+      state?.incCounter("anxiety", -1);
+    },
+  },
+
+  windowAlreadyUsed: {
+    speaker: "Васька",
+    lines: ["Я уже сидел тут.", "Пора идти дальше."],
+  },
+
+  wrongDoor: {
+    speaker: "Васька",
+    lines: [
+      "Блин. Не туда свернул.",
+      "Спросонья только лишний раз дёрнулся.",
+    ],
+    onComplete: (state) => {
+      state?.incCounter("anxiety", 1);
+    },
+  },
+
+  /* ===== ПРОФЕССОР ===== */
+
+  professorTalk: {
+    speaker: "Александр Евгеньевич",
+    lines: [
+      "Так, студенты.",
+      "Экзамен начнётся через 10 минут.",
+      "Кто опоздает — не пущу.",
+      "А ты, молодой человек, чего такой бледный? Экзамена боишься?",
+    ],
+    choices: [
+      {
+        text: "Честно признаться",
+        nextScene: "professorHonest",
+      },
+      {
+        text: "Сказать что всё нормально",
+        nextScene: "professorLie",
+      },
+      {
+        text: "Попросить совет",
+        nextScene: "professorAdvice",
+      },
+    ],
+  },
+
+  professorHonest: {
+    speaker: "Васька",
+    lines: ["Да, профессор... нервничаю."],
+    onComplete: (state) => {
+      state?.incCounter("anxiety", -1);
+    },
+    nextScene: "examStart",
+  },
+
+  professorLie: {
+    speaker: "Васька",
+    lines: ["Да не, всё нормально."],
+    onComplete: (state) => {
+      state?.incCounter("anxiety", 1);
+    },
+    nextScene: "examStart",
+  },
+
+  professorAdvice: {
+    speaker: "Александр Евгеньевич",
+    lines: ["Отвечай по существу.", "Если не знаешь — не выдумывай."],
+    onComplete: (state) => {
+      state?.incCounter("preparation", 1);
+      state?.incCounter("anxiety", -1);
+    },
+    nextScene: "examStart",
+  },
+
+  /* ===== ЭКЗАМЕН ===== */
+
+  examStart: {
+    speaker: "Профессор",
+    lines: ["Фамилия?", "Петров.", "Садись. Тяни билет."],
+    onComplete: (_state, _inventory, story) => {
+      story?.startExamResult();
+    },
+  },
+
+  /* ===== КОНЦОВКИ ===== */
+
+  endingPerfect: {
+    speaker: "Профессор",
+    lines: ["Отлично, Петров.", "Редко такое вижу.", "Пятёрка."],
+  },
+
+  endingGood: {
+    speaker: "Профессор",
+    lines: ["Неплохо.", "Четвёрка.", "Можешь идти."],
+  },
+
+  endingNormal: {
+    speaker: "Профессор",
+    lines: ["На троечку.", "Но видно, что старался."],
+  },
+
+  endingEdge: {
+    speaker: "Профессор",
+    lines: ["Петров...", "Ладно, тройка.", "Идите."],
+  },
+
+  endingFail: {
+    speaker: "Профессор",
+    lines: ["Пересдача.", "Следующий."],
   },
 };
+
+/* ===== NPC DIALOGUES ===== */
 
 export const NPC_DIALOGUES = {
   Semyon: {
     firstMeeting: {
-      useScene: "semyonExamTalk",
+      useScene: "SemyonExamTalk",
     },
 
     repeat: {
       speaker: "Семён",
-      lines: ["Ну что, решил уже, идёшь к Свете или нет?"],
-    },
-
-    afterKey: {
-      speaker: "Семён",
-      lines: ["Ключ уже у тебя? Тогда не тупи, надо выходить."],
+      lines: ["Ну что, решил уже?"],
     },
   },
 
@@ -152,7 +418,19 @@ export const NPC_DIALOGUES = {
 
     repeat: {
       speaker: "Света",
-      lines: ["Я уже всё сказала. Теперь всё зависит от тебя."],
+      lines: ["Я уже всё сказала.", "Теперь всё зависит от тебя."],
+    },
+  },
+
+  Professor: {
+    firstMeeting: {
+      useScene: "professorTalk",
+    },
+  },
+
+  Professor_audience: {
+    firstMeeting: {
+      useScene: "examStart",
     },
   },
 };
