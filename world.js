@@ -78,35 +78,52 @@ export function buildItems(scene, map, layerName) {
   const layer = map.getObjectLayer(layerName);
   const items = scene.physics.add.staticGroup();
 
-  if (!layer) return items; // нет слоя — нет предметов на этой карте, это нормально
+  if (!layer) return items;
 
   layer.objects.forEach((o) => {
     const type = getProp(o, "type", "");
-    if (type !== "key") return;
-
     const itemId = getProp(o, "itemId", "");
-    const spriteKey = getProp(o, "sprite", "key");
 
-    // Проверяем через registry, не был ли ключ уже собран
-    const inventory = scene.registry.get("inventory") || {};
-    if (inventory[itemId]) {
+    // ===== КЛЮЧ =====
+    if (type === "key") {
+      const spriteKey = getProp(o, "sprite", "key");
+
+      const inventory = scene.registry.get("inventory") || {};
+      if (inventory[itemId]) {
+        return;
+      }
+
+      const x = o.width ? o.x + o.width / 2 : o.x;
+      const y = o.height ? o.y + o.height / 2 : o.y;
+
+      const img = scene.add.image(x, y, spriteKey).setDepth(900);
+      scene.physics.add.existing(img, true);
+
+      img.itemData = {
+        type,
+        itemId,
+        collected: false,
+      };
+
+      items.add(img);
       return;
     }
 
-    // координаты: для Rect учитываем центр, для Point — x/y как есть
-    const x = o.width ? o.x + o.width / 2 : o.x;
-    const y = o.height ? o.y + o.height / 2 : o.y;
+    // ===== ИНТЕРАКТИВНЫЙ ОБЪЕКТ УЧЁБЫ =====
+    if (itemId === "studyDesk") {
+      const x = o.width ? o.x + o.width / 2 : o.x;
+      const y = o.height ? o.y + o.height / 2 : o.y;
 
-    const img = scene.add.image(x, y, spriteKey).setDepth(900);
-    scene.physics.add.existing(img, true);
+      const zone = scene.add.zone(x, y, o.width || 32, o.height || 32);
+      scene.physics.add.existing(zone, true);
 
-    img.itemData = {
-      type,
-      itemId,
-      collected: false,
-    };
+      zone.itemData = {
+        type: "interaction",
+        itemId: "studyDesk",
+      };
 
-    items.add(img);
+      items.add(zone);
+    }
   });
 
   return items;

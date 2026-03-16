@@ -102,6 +102,15 @@ export const STORY_SCENES = {
     speaker: "Васька",
     lines: ["Ключ я уже нашёл, но надо поговорить с Семёном."],
   },
+
+  studySession: {
+    speaker: "Васька",
+    lines: [
+      "Ладно... надо собраться.",
+      "Немного повторю конспекты.",
+      "Вроде стало спокойнее.",
+    ],
+  },
 };
 
 export const NPC_DIALOGUES = {

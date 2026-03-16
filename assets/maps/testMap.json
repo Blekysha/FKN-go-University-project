@@ -330,7 +330,7 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":18.625,
+                 "width":14.3522727272727,
                  "x":119.625,
                  "y":86
                 }, 
@@ -522,6 +522,23 @@
                  "width":4.43873517786561,
                  "x":182.644268774704,
                  "y":102.216403162055
+                }, 
+                {
+                 "height":37,
+                 "id":101,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"itemId",
+                         "type":"string",
+                         "value":"studyDesk"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":23.7272727272727,
+                 "x":124.090909090909,
+                 "y":71.1818181818182
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -530,7 +547,7 @@
          "y":0
         }],
  "nextlayerid":10,
- "nextobjectid":101,
+ "nextobjectid":102,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

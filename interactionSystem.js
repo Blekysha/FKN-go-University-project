@@ -177,6 +177,27 @@ export function createInteractionSystem(
       const id = currentItem.itemData?.itemId;
       if (!id) return;
 
+      // ===== УЧЁБА =====
+      if (id === "studyDesk") {
+        const goal = state?.getValue("currentGoal");
+
+        if (goal !== "study") {
+          dialogueUI.show({
+            speaker: "Васька",
+            lines: ["Сейчас не до учёбы."],
+          });
+          return;
+        }
+
+        dialogueManager.startScene("studySession");
+
+        state.setFlag("studied_exam");
+        state.incCounter("anxiety", -1);
+
+        return;
+      }
+
+      // ===== ОБЫЧНЫЙ ПРЕДМЕТ =====
       inventory.add(id);
 
       currentItem.destroy();
