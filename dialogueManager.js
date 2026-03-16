@@ -47,6 +47,18 @@ export function createDialogueManager(scene, { inventory, state } = {}) {
       }
     };
 
+    if (sceneId === "svetaFortuneTalk") {
+      dialogueUI.show({
+        ...sceneData,
+        onComplete: () => {
+          state?.setFlag("visited_sveta");
+          state?.incCounter("anxiety", -1);
+          startScene("afterSvetaTalk");
+        },
+      });
+      return;
+    }
+
     dialogueUI.show(sceneData);
   }
 
@@ -56,6 +68,21 @@ export function createDialogueManager(scene, { inventory, state } = {}) {
     const npcData = NPC_DIALOGUES[npcId];
     if (!npcData) {
       console.warn(`[dialogueManager] NPC '${npcId}' не найден.`);
+      return;
+    }
+    if (npcId === "Sveta") {
+      const alreadyVisitedSveta = state?.hasFlag("visited_sveta") ?? false;
+
+      if (!alreadyVisitedSveta) {
+        startScene("svetaFortuneTalk");
+        return;
+      }
+
+      dialogueUI.onChoice = null;
+      dialogueUI.show({
+        speaker: "Света",
+        lines: ["Я уже всё сказала. Теперь всё зависит от тебя."],
+      });
       return;
     }
 

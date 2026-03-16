@@ -164,6 +164,20 @@ export function createInteractionSystem(
       return;
     }
 
+    // выход из коридора общаги
+    if (doorId === "exitDormDoor") {
+      const studied = state.hasFlag("studied_exam");
+      const visitedSveta = state.hasFlag("visited_sveta");
+
+      if (!studied && !visitedSveta) {
+        dialogueUI.show({
+          speaker: "Васька",
+          lines: ["Надо сначала либо подготовиться, либо зайти к Свете."],
+        });
+        return;
+      }
+    }
+
     levelManager.load(d.targetMap, d.targetSpawn);
   }
 

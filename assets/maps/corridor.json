@@ -418,9 +418,9 @@
                  "name":"",
                  "properties":[
                         {
-                         "name":"keyId",
+                         "name":"doorId",
                          "type":"string",
-                         "value":"key_1"
+                         "value":"exitDormDoor"
                         }, 
                         {
                          "name":"locked",
