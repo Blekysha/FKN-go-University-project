@@ -56,6 +56,7 @@ export function createStorySystem(scene, { state, dialogueManager } = {}) {
     const A = state?.getCounter("anxiety") ?? 0;
     const F = state?.getCounter("fatigue") ?? 0;
     const S = state?.getCounter("social") ?? 0;
+
     const effectivePrep = P + Math.floor(S / 2);
 
     let endingScene = "endingNormal";

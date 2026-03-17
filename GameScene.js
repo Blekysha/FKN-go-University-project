@@ -80,6 +80,7 @@ function create() {
     levelManager: this.levelManager,
     dialogueManager: this.dialogueManager,
     state: this.storyState,
+    story: this.story,
   });
 
   // интро запускаем после полной инициализации сцены

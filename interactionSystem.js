@@ -2,7 +2,16 @@ import { dialogueUI } from "./dialogueUI.js";
 
 export function createInteractionSystem(
   scene,
-  { playerSprite, keyE, hint, inventory, levelManager, dialogueManager, state }
+  {
+    playerSprite,
+    keyE,
+    hint,
+    inventory,
+    levelManager,
+    dialogueManager,
+    state,
+    story,
+  }
 ) {
   let currentItem = null;
   let currentDoor = null;
@@ -98,14 +107,6 @@ export function createInteractionSystem(
         if (goal === "toilet") {
           dialogueManager.startScene("afterToiletChoice");
         }
-      },
-    });
-  }
-
-  function enterAudience(doorData) {
-    openSceneWithPlayerHidden("enterAudienceTimeSkip", {
-      afterComplete: () => {
-        levelManager.load(doorData.targetMap, doorData.targetSpawn);
       },
     });
   }
@@ -237,6 +238,34 @@ export function createInteractionSystem(
     });
   }
 
+  // НПС
+  function handleNpc(npcId) {
+    if (npcId === "Professor_audience") {
+      if (state.hasFlag("exam_finished")) {
+        dialogueManager.startScene("examAlreadyFinished");
+        return;
+      }
+
+      dialogueManager.startScene("examStart", {
+        onComplete: () => {
+          const result = story?.getExamOutcome?.() ?? null;
+          if (!result) return;
+
+          state.setFlag("exam_finished");
+
+          dialogueManager.startScene("debugExamStats", {
+            onComplete: () => {
+              dialogueManager.startScene(result.endingScene);
+            },
+          });
+        },
+      });
+      return;
+    }
+
+    dialogueManager.startNpc(npcId);
+  }
+
   /* ===== НАЖАТИЕ E ===== */
 
   function handleInteract() {
@@ -265,7 +294,7 @@ export function createInteractionSystem(
         return;
       }
 
-      dialogueManager.startNpc(npcId);
+      handleNpc(npcId);
     }
   }
 

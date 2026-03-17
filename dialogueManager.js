@@ -9,10 +9,25 @@ export function createDialogueManager(scene, { inventory, state, story } = {}) {
   function startScene(sceneId, options = {}) {
     if (dialogueUI.isOpen()) return;
 
-    const sceneData = STORY_SCENES[sceneId];
+    let sceneData = STORY_SCENES[sceneId];
     if (!sceneData) {
       console.warn(`[dialogueManager] Сцена '${sceneId}' не найдена.`);
       return;
+    }
+
+    if (sceneId === "debugExamStats") {
+      const stats = state?.getValue("lastExamStats") ?? {};
+      sceneData = {
+        ...sceneData,
+        lines: [
+          `Preparation: ${stats.preparation ?? 0}`,
+          `Anxiety: ${stats.anxiety ?? 0}`,
+          `Fatigue: ${stats.fatigue ?? 0}`,
+          `Social: ${stats.social ?? 0}`,
+          `EffectivePrep: ${stats.effectivePrep ?? 0}`,
+          `Ending: ${stats.endingScene ?? "unknown"}`,
+        ],
+      };
     }
 
     const extraOnComplete = options.onComplete;
@@ -67,7 +82,7 @@ export function createDialogueManager(scene, { inventory, state, story } = {}) {
     }
 
     if (npcId === "Professor") {
-      if (state?.hasFlag("professor_corridor_done")) {
+      if (state?.hasFlag("talked_professor_corridor")) {
         dialogueUI.onChoice = null;
         dialogueUI.show({
           speaker: "Александр Евгеньевич",
