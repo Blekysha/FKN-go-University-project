@@ -57,6 +57,41 @@ export function createDialogueManager(scene, { inventory, state, story } = {}) {
       return;
     }
 
+    if (npcId === "Sveta" && (state?.hasFlag("visited_sveta") ?? false)) {
+      dialogueUI.onChoice = null;
+      dialogueUI.show({
+        speaker: "Света",
+        lines: ["Я уже всё сказала.", "Теперь всё зависит от тебя."],
+      });
+      return;
+    }
+
+    if (npcId === "Professor") {
+      if (state?.hasFlag("professor_corridor_done")) {
+        dialogueUI.onChoice = null;
+        dialogueUI.show({
+          speaker: "Александр Евгеньевич",
+          lines: ["Чего стоите? Заходите в аудиторию."],
+        });
+        return;
+      }
+    }
+
+    if (npcId === "Professor_audience") {
+      if (!(state?.hasFlag("entered_audience") ?? false)) {
+        return;
+      }
+
+      if (state?.hasFlag("exam_finished")) {
+        dialogueUI.onChoice = null;
+        dialogueUI.show({
+          speaker: "Александр Евгеньевич",
+          lines: ["Следующий студент."],
+        });
+        return;
+      }
+    }
+
     const talkCounterId = `${npcId}_talk_count`;
     const metFlagId = `met_${npcId}`;
     const hasMet = state?.hasFlag(metFlagId) ?? false;

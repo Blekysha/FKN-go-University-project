@@ -1,5 +1,3 @@
-// interactionSystem.js
-
 import { dialogueUI } from "./dialogueUI.js";
 
 export function createInteractionSystem(
@@ -104,6 +102,14 @@ export function createInteractionSystem(
     });
   }
 
+  function enterAudience(doorData) {
+    openSceneWithPlayerHidden("enterAudienceTimeSkip", {
+      afterComplete: () => {
+        levelManager.load(doorData.targetMap, doorData.targetSpawn);
+      },
+    });
+  }
+
   /* ===== ДВЕРИ ===== */
 
   function handleDoor(d) {
@@ -143,6 +149,26 @@ export function createInteractionSystem(
         });
         return;
       }
+    }
+
+    if (doorId === "audienceDoor") {
+      if (!state.hasFlag("talked_professor_corridor")) {
+        dialogueUI.show({
+          speaker: "Васька",
+          lines: ["Сначала надо поговорить с преподавателем."],
+        });
+        return;
+      }
+
+      dialogueManager.startScene("audienceTimeSkip", {
+        onComplete: () => {
+          state.setFlag("entered_audience");
+          state.setValue("currentGoal", "exam");
+          levelManager.load(d.targetMap, d.targetSpawn);
+        },
+      });
+
+      return;
     }
 
     if (["wrongDoor", "stairsDoor", "leftDormDoor"].includes(doorId)) {

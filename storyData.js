@@ -119,28 +119,34 @@ export const STORY_SCENES = {
     lines: ["Теперь можно спокойно позаниматься."],
   },
 
+  studyAfterSveta: {
+    speaker: "Васька",
+    lines: [
+      "Ладно, надо хотя бы немного повторить.",
+      "Времени уже маловато, но лучше так, чем вообще никак.",
+    ],
+  },
+
   studySession: {
     speaker: "Васька",
     lines: [
       "Ладно... надо собраться.",
       "Открою конспекты.",
       "Вроде стало понятнее.",
-      "Хотя мысль о Свете всё равно не отпускает.",
     ],
     onComplete: (state) => {
       state?.incCounter("preparation", 1);
       state?.incCounter("fatigue", 1);
       state?.setFlag("studied_exam");
     },
-    nextScene: "afterStudyChoice",
   },
 
   afterStudyChoice: {
     speaker: "Васька",
-    lines: ["Так. Я уже хоть немного подготовился. Что дальше?"],
+    lines: ["Так. Я уже позанимался. Что дальше?"],
     choices: [
       {
-        text: "Идти в универ",
+        text: "Сразу идти в универ",
         nextScene: "goToUniversity",
         effects: [{ type: "setValue", id: "currentGoal", value: "university" }],
       },
@@ -154,12 +160,7 @@ export const STORY_SCENES = {
 
   goToUniversity: {
     speaker: "Васька",
-    lines: ["Пора выдвигаться в универ."],
-  },
-
-  goToSvetaAfterStudy: {
-    speaker: "Васька",
-    lines: ["Может, всё-таки зайти к Свете перед выходом..."],
+    lines: ["Ладно. Пора идти в универ."],
   },
 
   /* ===== СВЕТА ===== */
@@ -172,6 +173,11 @@ export const STORY_SCENES = {
   goToSvetaAfterToilet: {
     speaker: "Васька",
     lines: ["Ладно, теперь можно и к Свете зайти."],
+  },
+
+  goToSvetaAfterStudy: {
+    speaker: "Васька",
+    lines: ["Ладно, быстро зайду к Свете и потом уже без вариантов в универ."],
   },
 
   svetaFortuneTalk: {
@@ -194,6 +200,26 @@ export const STORY_SCENES = {
       {
         text: "Пойти учиться",
         nextScene: "studyAfterSveta",
+        effects: [{ type: "setValue", id: "currentGoal", value: "study" }],
+      },
+    ],
+  },
+
+  svetaFortuneTalkAfterStudy: {
+    speaker: "Света",
+    lines: [
+      "Заходи, Васька.",
+      "Ты уже занимался, да? Вижу по лицу.",
+      "Тогда долго не сиди. Времени до экзамена осталось мало.",
+    ],
+    choices: [
+      {
+        text: "Остаться на чай",
+        nextScene: "svetaTeaAfterStudy",
+      },
+      {
+        text: "Пойти к Семёну",
+        nextScene: "goBackToSemyonAfterStudy",
       },
     ],
   },
@@ -205,17 +231,18 @@ export const STORY_SCENES = {
       state?.incCounter("anxiety", -2);
       state?.incCounter("fatigue", -1);
       state?.setFlag("visited_sveta");
+      state?.setValue("currentGoal", "university");
     },
-    nextScene: "goToUniversity",
   },
 
-  studyAfterSveta: {
-    speaker: "Васька",
-    lines: ["Пойду я. Сам ещё конспекты посмотрю."],
+  svetaTeaAfterStudy: {
+    speaker: "Света",
+    lines: ["По чашке чая — и бегом.", "Не накручивай себя перед экзаменом."],
     onComplete: (state) => {
+      state?.incCounter("anxiety", -2);
+      state?.incCounter("fatigue", -1);
       state?.setFlag("visited_sveta");
-      state?.incCounter("anxiety", 1);
-      state?.setValue("currentGoal", "study");
+      state?.setValue("currentGoal", "university");
     },
   },
 
@@ -224,17 +251,28 @@ export const STORY_SCENES = {
   goBackToSemyon: {
     speaker: "Васька",
     lines: ["Пойду обратно к Семёну."],
-
     onComplete: (state) => {
       state?.setFlag("visited_sveta");
-      state?.incCounter("anxiety", -1);
+      state?.setValue("currentGoal", "semyon_after_sveta");
+    },
+  },
+
+  goBackToSemyonAfterStudy: {
+    speaker: "Васька",
+    lines: ["Ладно, быстро перекинусь парой слов с Семёном — и в универ."],
+    onComplete: (state) => {
+      state?.setFlag("visited_sveta");
       state?.setValue("currentGoal", "semyon_after_sveta");
     },
   },
 
   SemyonAfterSveta: {
     speaker: "Семён",
-    lines: ["О, вернулся!", "Ну чё, нагадала тебе Светка?"],
+    lines: [
+      "О, вернулся!",
+      "Ну чё, нагадала тебе Светка?",
+      "Только давай быстро, а то уже реально времени мало.",
+    ],
 
     onComplete: (state) => {
       state?.setFlag("talkedAfterSveta");
@@ -257,8 +295,8 @@ export const STORY_SCENES = {
     lines: ["Ладно, забей.", "Иногда надо просто выдохнуть."],
     onComplete: (state) => {
       state?.incCounter("social", 1);
+      state?.setValue("currentGoal", "university");
     },
-    nextScene: "goToUniversity",
   },
 
   SemyonStudyTalk: {
@@ -269,9 +307,8 @@ export const STORY_SCENES = {
     ],
     onComplete: (state) => {
       state?.incCounter("preparation", 1);
-      state?.incCounter("social", 1);
+      state?.setValue("currentGoal", "university");
     },
-    nextScene: "goToUniversity",
   },
 
   /* ===== ПОДОКОННИК ===== */
@@ -294,17 +331,6 @@ export const STORY_SCENES = {
     lines: ["Я уже сидел тут.", "Пора идти дальше."],
   },
 
-  wrongDoor: {
-    speaker: "Васька",
-    lines: [
-      "Блин. Не туда свернул.",
-      "Спросонья только лишний раз дёрнулся.",
-    ],
-    onComplete: (state) => {
-      state?.incCounter("anxiety", 1);
-    },
-  },
-
   /* ===== ПРОФЕССОР ===== */
 
   professorTalk: {
@@ -313,7 +339,6 @@ export const STORY_SCENES = {
       "Так, студенты.",
       "Экзамен начнётся через 10 минут.",
       "Кто опоздает — не пущу.",
-      "А ты, молодой человек, чего такой бледный? Экзамена боишься?",
     ],
     choices: [
       {
@@ -336,8 +361,9 @@ export const STORY_SCENES = {
     lines: ["Да, профессор... нервничаю."],
     onComplete: (state) => {
       state?.incCounter("anxiety", -1);
+      state?.setFlag("talked_professor_corridor");
+      state?.setValue("currentGoal", "exam");
     },
-    nextScene: "examStart",
   },
 
   professorLie: {
@@ -345,8 +371,9 @@ export const STORY_SCENES = {
     lines: ["Да не, всё нормально."],
     onComplete: (state) => {
       state?.incCounter("anxiety", 1);
+      state?.setFlag("talked_professor_corridor");
+      state?.setValue("currentGoal", "exam");
     },
-    nextScene: "examStart",
   },
 
   professorAdvice: {
@@ -355,40 +382,65 @@ export const STORY_SCENES = {
     onComplete: (state) => {
       state?.incCounter("preparation", 1);
       state?.incCounter("anxiety", -1);
+      state?.setFlag("talked_professor_corridor");
+      state?.setValue("currentGoal", "exam");
     },
-    nextScene: "examStart",
+  },
+
+  professorCorridorRepeat: {
+    speaker: "Александр Евгеньевич",
+    lines: ["Не задерживайся в коридоре. Заходи в аудиторию."],
+  },
+
+  audienceTimeSkip: {
+    speaker: "Система",
+    lines: [
+      "Через несколько минут студентов запускают в аудиторию.",
+      "Васька садится и ждёт своей очереди.",
+    ],
   },
 
   /* ===== ЭКЗАМЕН ===== */
 
   examStart: {
     speaker: "Профессор",
-    lines: ["Фамилия?", "Петров.", "Садись. Тяни билет."],
-    onComplete: (_state, _inventory, story) => {
-      story?.startExamResult();
-    },
+    lines: ["Фамилия?", "Садись. Тяни билет."],
+  },
+
+  debugExamStats: {
+    speaker: "Система",
+    lines: ["Отладка экзамена..."],
+  },
+
+  examAlreadyFinished: {
+    speaker: "Профессор",
+    lines: ["Экзамен для тебя уже закончился."],
   },
 
   /* ===== КОНЦОВКИ ===== */
 
   endingPerfect: {
     speaker: "Профессор",
-    lines: ["Отлично, Петров.", "Редко такое вижу.", "Пятёрка."],
+    lines: [
+      "Отлично, Петров.",
+      "Редко вижу такой уверенный ответ.",
+      "Пятёрка.",
+    ],
   },
 
   endingGood: {
     speaker: "Профессор",
-    lines: ["Неплохо.", "Четвёрка.", "Можешь идти."],
+    lines: ["Неплохо.", "Есть мелкие огрехи, но в целом хорошо.", "Четвёрка."],
   },
 
   endingNormal: {
     speaker: "Профессор",
-    lines: ["На троечку.", "Но видно, что старался."],
+    lines: ["На троечку.", "Но видно, что старался.", "Свободен."],
   },
 
   endingEdge: {
     speaker: "Профессор",
-    lines: ["Петров...", "Ладно, тройка.", "Идите."],
+    lines: ["Петров...", "На грани.", "Ладно, тройка. Иди."],
   },
 
   endingFail: {
@@ -426,11 +478,19 @@ export const NPC_DIALOGUES = {
     firstMeeting: {
       useScene: "professorTalk",
     },
+
+    repeat: {
+      useScene: "professorCorridorRepeat",
+    },
   },
 
   Professor_audience: {
     firstMeeting: {
       useScene: "examStart",
+    },
+
+    repeat: {
+      useScene: "examAlreadyFinished",
     },
   },
 };

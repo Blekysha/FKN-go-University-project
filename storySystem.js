@@ -51,41 +51,45 @@ export function createStorySystem(scene, { state, dialogueManager } = {}) {
     }
   }
 
-  function calculateExamEnding() {
+  function getExamOutcome() {
     const P = state?.getCounter("preparation") ?? 0;
     const A = state?.getCounter("anxiety") ?? 0;
     const F = state?.getCounter("fatigue") ?? 0;
     const S = state?.getCounter("social") ?? 0;
+    const effectivePrep = P + Math.floor(S / 2);
 
-    // Соцсвязи дают мягкий бонус.
-    const prep = P + Math.floor(S / 2);
+    let endingScene = "endingNormal";
 
-    if (prep >= 7 && A <= 4) return "endingPerfect";
-    if (prep >= 7 && A <= 5) return "endingGood";
-    if (prep >= 4 && prep <= 6 && A <= 5) return "endingNormal";
-    if (prep >= 4 && prep <= 6 && A >= 6) return "endingEdge";
-    if (prep <= 3 || F >= 7) return "endingFail";
+    if (effectivePrep >= 3 && A <= 0 && F <= 2) {
+      endingScene = "endingPerfect";
+    } else if (effectivePrep >= 2 && A <= 1 && F <= 3) {
+      endingScene = "endingGood";
+    } else if (effectivePrep >= 1 && A <= 3 && F <= 4) {
+      endingScene = "endingNormal";
+    } else if (effectivePrep >= 1 && A <= 5) {
+      endingScene = "endingEdge";
+    } else {
+      endingScene = "endingFail";
+    }
 
-    return "endingNormal";
-  }
+    const result = {
+      preparation: P,
+      anxiety: A,
+      fatigue: F,
+      social: S,
+      effectivePrep,
+      endingScene,
+    };
 
-  function startExam(dialogueManagerArg) {
-    const dm = dialogueManagerArg ?? dialogueManager;
-    const endingScene = calculateExamEnding();
-    dm?.startScene(endingScene);
-  }
+    state?.setValue("lastExamStats", result);
+    state?.setValue("lastExamEnding", endingScene);
 
-  // Вызывается из onComplete сцены examStart
-  function startExamResult() {
-    const endingScene = calculateExamEnding();
-    dialogueManager?.startScene(endingScene);
+    return result;
   }
 
   return {
     playIntroOnce,
     applyEffects,
-    calculateExamEnding,
-    startExam,
-    startExamResult,
+    getExamOutcome,
   };
 }
