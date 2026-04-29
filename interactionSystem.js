@@ -16,6 +16,56 @@ export function createInteractionSystem(
   let currentItem = null;
   let currentDoor = null;
   let currentNpc = null;
+  let blackScreenActive = false;
+
+  function showBlackScreen(text, { onComplete = null } = {}) {
+    const root = document.getElementById("blackScreen");
+    const textEl = document.getElementById("blackScreenText");
+
+    if (!root || !textEl) {
+      console.warn("[interactionSystem] Не найден #blackScreen или #blackScreenText.");
+      onComplete?.();
+      return;
+    }
+
+    blackScreenActive = true;
+    playerSprite.setVelocity(0);
+    playerSprite.setVisible(false);
+    if (playerSprite.body) {
+      playerSprite.body.enable = false;
+    }
+
+    textEl.textContent = text;
+    root.style.display = "flex";
+    root.setAttribute("aria-hidden", "false");
+
+    const close = () => {
+      window.removeEventListener("keydown", onKeyDown);
+      root.removeEventListener("click", close);
+
+      root.style.display = "none";
+      root.setAttribute("aria-hidden", "true");
+      textEl.textContent = "";
+
+      playerSprite.setVisible(true);
+      if (playerSprite.body) {
+        playerSprite.body.enable = true;
+      }
+
+      blackScreenActive = false;
+      onComplete?.();
+    };
+
+    const onKeyDown = (e) => {
+      if (e.code === "Space" || e.code === "Enter") {
+        e.preventDefault();
+        close();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown, { passive: false });
+    root.addEventListener("click", close);
+  }
 
   function findItem() {
     currentItem = null;
@@ -227,6 +277,29 @@ export function createInteractionSystem(
       return;
     }
 
+    if (id === "examDesk") {
+      if (!state.hasFlag("got_exam_ticket")) {
+        dialogueManager.startScene("needTakeTicketFirst");
+        return;
+      }
+
+      if (state.hasFlag("exam_prepared_answer")) {
+        dialogueManager.startScene("examDeskAlreadyUsed");
+        return;
+      }
+
+      showBlackScreen(
+        "Васька садится за парту.\nПеред ним билет, черновик и несколько минут на подготовку.\nМысли путаются, но постепенно ответ складывается в голове.",
+        {
+          onComplete: () => {
+            state.setFlag("exam_prepared_answer");
+            dialogueManager.startScene("examAnswerPrepared");
+          },
+        }
+      );
+      return;
+    }
+
     inventory.add(id);
 
     item.destroy();
@@ -240,22 +313,47 @@ export function createInteractionSystem(
 
   // НПС
   function handleNpc(npcId) {
+    if (npcId === "ProfessorEntrance") {
+      dialogueManager.startNpc(npcId);
+      return;
+    }
+
+    if (npcId === "crowd_students") {
+      dialogueManager.startNpc(npcId);
+      return;
+    }
+
     if (npcId === "Professor_audience") {
       if (state.hasFlag("exam_finished")) {
         dialogueManager.startScene("examAlreadyFinished");
         return;
       }
 
-      dialogueManager.startScene("examStart", {
+      if (!state.hasFlag("got_exam_ticket")) {
+        dialogueManager.startScene("examTakeTicket");
+        return;
+      }
+
+      if (!state.hasFlag("exam_prepared_answer")) {
+        dialogueManager.startScene("needSitAtExamDesk");
+        return;
+      }
+
+      dialogueManager.startScene("examDefenseStart", {
         onComplete: () => {
           const result = story?.getExamOutcome?.() ?? null;
           if (!result) return;
 
           state.setFlag("exam_finished");
 
-          dialogueManager.startScene("debugExamStats", {
+          dialogueManager.startScene(result.endingScene, {
             onComplete: () => {
-              dialogueManager.startScene(result.endingScene);
+              showBlackScreen(
+                "Экзамен закончен.\nВаська выходит из аудитории и наконец выдыхает.\nДальше здесь появятся финальные выводы по пройденному пути.",
+                {
+                  onComplete: () => dialogueManager.startScene("finalExamSummary"),
+                }
+              );
             },
           });
         },
@@ -299,6 +397,11 @@ export function createInteractionSystem(
   }
 
   function update() {
+    if (blackScreenActive) {
+      hint.hide();
+      return;
+    }
+
     findItem();
     findDoor();
     findNpc();

@@ -38,6 +38,8 @@ function preload() {
   this.load.image("npc_roommate_sit", "assets/npc_roommate_sit.png"); // Семён
   this.load.image("npc_Sveta", "assets/npc_Sveta.png"); // Света
   this.load.image("npc_Professor", "assets/npc_Professor.png"); // Профессор
+  this.load.image("npc_ProfessorEntrance", "assets/npc_ProfessorEntrance.png"); // Преподаватель у аудитории
+  this.load.image("npc_crowd_students", "assets/npc_crowd_students.png"); // Толпа студентов
   this.load.image("eye", "assets/eye.png");
 }
 

@@ -70,8 +70,8 @@ export function buildItems(scene, map, layerName) {
   const layer = map.getObjectLayer(layerName);
   const items = scene.physics.add.staticGroup();
 
+  // На некоторых картах интерактивных предметов нет — это нормальная ситуация.
   if (!layer) {
-    console.warn(`Object Layer '${layerName}' не найден.`);
     return items;
   }
 
@@ -104,8 +104,16 @@ export function buildItems(scene, map, layerName) {
       return;
     }
 
-    // ===== ИНТЕРАКТИВНЫЙ ОБЪЕКТ УЧЁБЫ =====
-    if (itemId === "studyDesk") {
+    // ===== ИНТЕРАКТИВНЫЕ ОБЪЕКТЫ =====
+    // В старых картах у studyDesk может быть только itemId без type.
+    // Поэтому проверяем не только type === "interaction", но и известные itemId.
+    const isInteraction =
+      type === "interaction" ||
+      itemId === "studyDesk" ||
+      itemId === "windowRest" ||
+      itemId === "examDesk";
+
+    if (isInteraction && itemId) {
       const x = o.width ? o.x + o.width / 2 : o.x;
       const y = o.height ? o.y + o.height / 2 : o.y;
 
@@ -120,21 +128,6 @@ export function buildItems(scene, map, layerName) {
 
       items.add(zone);
     }
-    // ===== ПОДОКОННИК =====
-    if (itemId === "windowRest") {
-      const x = o.width ? o.x + o.width / 2 : o.x;
-      const y = o.height ? o.y + o.height / 2 : o.y;
-
-      const zone = scene.add.zone(x, y, o.width || 32, o.height || 32);
-      scene.physics.add.existing(zone, true);
-
-      zone.itemData = {
-        type: "interaction",
-        itemId: "windowRest",
-      };
-
-      items.add(zone);
-    }
   });
 
   return items;
@@ -143,8 +136,8 @@ export function buildItems(scene, map, layerName) {
 export function buildNpcs(scene, map, layerName) {
   const layer = map.getObjectLayer(layerName);
 
+  // На некоторых картах NPC может не быть — это нормальная ситуация.
   if (!layer) {
-    console.warn(`Object Layer '${layerName}' не найден.`);
     return {
       zones: scene.physics.add.staticGroup(),
       sprites: scene.add.group(),

@@ -146,3 +146,35 @@ canvas {
   border-color: rgba(255, 255, 255, 0.48);
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.18);
 }
+
+/* ===== Чёрный экран для сюжетных переходов ===== */
+
+#blackScreen {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 32px;
+  background: #000;
+  z-index: 10000;
+  color: #ffffffe2;
+  text-align: center;
+}
+
+#blackScreenText {
+  max-width: 760px;
+  font-family: "shrift", monospace;
+  font-size: 26px;
+  line-height: 1.35;
+  white-space: pre-wrap;
+}
+
+#blackScreenHint {
+  margin-top: 26px;
+  font-family: "shrift", monospace;
+  font-size: 15px;
+  opacity: 0.65;
+}

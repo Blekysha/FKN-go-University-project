@@ -331,6 +331,107 @@ export const STORY_SCENES = {
     lines: ["Я уже сидел тут.", "Пора идти дальше."],
   },
 
+
+  /* ===== ФИНАЛ: КОРИДОР УНИВЕРСИТЕТА И ЭКЗАМЕН ===== */
+
+  professorEntranceTalk: {
+    speaker: "Преподаватель",
+    lines: [
+      "Следующий.",
+      "Готовьтесь заходить в аудиторию по одному.",
+      "Когда будете готовы — проходите.",
+    ],
+    onComplete: (state) => {
+      state?.setFlag("talked_professor_corridor");
+      state?.setFlag("talked_professor_entrance");
+      state?.setValue("currentGoal", "exam");
+    },
+  },
+
+  professorEntranceRepeat: {
+    speaker: "Преподаватель",
+    lines: ["Не задерживайтесь. Заходите в аудиторию."],
+  },
+
+  crowdStudentsTalk: {
+    speaker: "Студенты",
+    lines: [
+      "В коридоре шумно: кто-то повторяет билеты, кто-то спорит, кто-то нервно смеётся.",
+      "Разговоры только сильнее напоминают Ваське, что экзамен уже начался.",
+    ],
+    choices: [
+      {
+        text: "Послушать разговоры",
+        nextScene: "crowdStudentsListen",
+        effects: [{ type: "incCounter", id: "anxiety", delta: 1 }],
+      },
+      {
+        text: "Отойти и не накручивать себя",
+        nextScene: "crowdStudentsIgnore",
+        effects: [{ type: "incCounter", id: "anxiety", delta: -1 }],
+      },
+    ],
+  },
+
+  crowdStudentsListen: {
+    speaker: "Васька",
+    lines: ["Лучше бы я этого не слушал."],
+  },
+
+  crowdStudentsIgnore: {
+    speaker: "Васька",
+    lines: ["Сейчас главное — не паниковать."],
+  },
+
+  examTakeTicket: {
+    speaker: "Профессор",
+    lines: ["Подойдите к столу.", "Возьмите билет и садитесь готовиться."],
+    onComplete: (state) => {
+      state?.setFlag("got_exam_ticket");
+      state?.setValue("currentGoal", "exam_prepare");
+    },
+  },
+
+  needTakeTicketFirst: {
+    speaker: "Васька",
+    lines: ["Сначала надо подойти к преподавателю и взять билет."],
+  },
+
+  needSitAtExamDesk: {
+    speaker: "Профессор",
+    lines: ["Сначала подготовьте ответ за партой."],
+  },
+
+  examAnswerPrepared: {
+    speaker: "Васька",
+    lines: ["Время вышло. Надо идти отвечать."],
+    onComplete: (state) => {
+      state?.setValue("currentGoal", "exam_defense");
+    },
+  },
+
+  examDeskAlreadyUsed: {
+    speaker: "Васька",
+    lines: ["Я уже подготовил ответ. Теперь надо идти к преподавателю."],
+  },
+
+  examDefenseStart: {
+    speaker: "Профессор",
+    lines: [
+      "Начинайте ответ.",
+      "Хорошо, достаточно.",
+      "Сейчас скажу результат.",
+    ],
+    onComplete: (state) => {
+      state?.setFlag("exam_defended");
+    },
+  },
+
+  finalExamSummary: {
+    speaker: "Система",
+    lines: ["Экзамен завершён."],
+  },
+
   /* ===== ПРОФЕССОР ===== */
 
   professorTalk: {
@@ -484,13 +585,33 @@ export const NPC_DIALOGUES = {
     },
   },
 
-  Professor_audience: {
+  ProfessorEntrance: {
     firstMeeting: {
-      useScene: "examStart",
+      useScene: "professorEntranceTalk",
     },
 
     repeat: {
-      useScene: "examAlreadyFinished",
+      useScene: "professorEntranceRepeat",
+    },
+  },
+
+  crowd_students: {
+    firstMeeting: {
+      useScene: "crowdStudentsTalk",
+    },
+
+    repeat: {
+      useScene: "crowdStudentsTalk",
+    },
+  },
+
+  Professor_audience: {
+    firstMeeting: {
+      useScene: "examTakeTicket",
+    },
+
+    repeat: {
+      useScene: "needSitAtExamDesk",
     },
   },
 };
