@@ -180,13 +180,58 @@ export const STORY_SCENES = {
     lines: ["Ладно, быстро зайду к Свете и потом уже без вариантов в универ."],
   },
 
+  // Новая расширенная встреча со Светой
   svetaFortuneTalk: {
     speaker: "Света",
     lines: [
-      "Заходи, Васька.",
-      "Я знала, что ты придёшь.",
+      "О, привет... ты тоже на экзамен?",
+      "Выглядишь немного потерянно.",
+      "Не переживай, тут почти все такие."
+    ],
+    choices: [
+      {
+        text: "Да я вообще не готов...",
+        effects: { anxiety: +10, social: +5 },
+        nextScene: "svetaComfort"
+      },
+      {
+        text: "Я справлюсь",
+        effects: { preparation: +5, confidence: +3 },
+        nextScene: "svetaFortune"
+      },
+    ],
+  },
+
+  svetaComfort: {
+    speaker: "Света",
+    lines: [
+      "Не накручивай себя.",
+      "Иногда лучше выдохнуть и просто довериться процессу.",
+      "Экзамен ты сдашь, но всё зависит от твоих решений."
+    ],
+    choices: [
+      {
+        text: "Остаться на чай",
+        nextScene: "svetaTea",
+      },
+      {
+        text: "Пойти к Семёну",
+        nextScene: "goBackToSemyon",
+      },
+      {
+        text: "Пойти учиться",
+        nextScene: "studyAfterSveta",
+        effects: [{ type: "setValue", id: "currentGoal", value: "study" }],
+      },
+    ],
+  },
+
+  svetaFortune: {
+    speaker: "Света",
+    lines: [
+      "Я чувствую в тебе силу.",
       "Экзамен ты сдашь.",
-      "Но всё зависит от твоих решений.",
+      "Но помни — удача любит подготовленных."
     ],
     choices: [
       {
@@ -331,11 +376,10 @@ export const STORY_SCENES = {
     lines: ["Я уже сидел тут.", "Пора идти дальше."],
   },
 
-
   /* ===== ФИНАЛ: КОРИДОР УНИВЕРСИТЕТА И ЭКЗАМЕН ===== */
 
   professorEntranceTalk: {
-    speaker: "Преподаватель",
+    speaker: "Александр Евгеньевич",
     lines: [
       "Следующий.",
       "Готовьтесь заходить в аудиторию по одному.",
@@ -349,7 +393,7 @@ export const STORY_SCENES = {
   },
 
   professorEntranceRepeat: {
-    speaker: "Преподаватель",
+    speaker: "Александр Евгеньевич",
     lines: ["Не задерживайтесь. Заходите в аудиторию."],
   },
 
@@ -384,7 +428,7 @@ export const STORY_SCENES = {
   },
 
   examTakeTicket: {
-    speaker: "Профессор",
+    speaker: "Александр Евгеньевич",
     lines: ["Подойдите к столу.", "Возьмите билет и садитесь готовиться."],
     onComplete: (state) => {
       state?.setFlag("got_exam_ticket");
@@ -398,7 +442,7 @@ export const STORY_SCENES = {
   },
 
   needSitAtExamDesk: {
-    speaker: "Профессор",
+    speaker: "Александр Евгеньевич",
     lines: ["Сначала подготовьте ответ за партой."],
   },
 
@@ -416,7 +460,7 @@ export const STORY_SCENES = {
   },
 
   examDefenseStart: {
-    speaker: "Профессор",
+    speaker: "Александр Евгеньевич",
     lines: [
       "Начинайте ответ.",
       "Хорошо, достаточно.",
@@ -432,34 +476,156 @@ export const STORY_SCENES = {
     lines: ["Экзамен завершён."],
   },
 
-  /* ===== ПРОФЕССОР ===== */
+  /* ===== НОВЫЕ ДИАЛОГИ ПРОФЕССОРА В АУДИТОРИИ ===== */
+
+  professorConditionalLowPrep: {
+    speaker: "Александр Евгеньевич",
+    lines: [
+      "Я вижу этот взгляд.",
+      "Вы даже не пытались подготовиться.",
+      "Зачем тогда пришли?"
+    ],
+  },
+
+  professorConditionalHighPrep: {
+    speaker: "Александр Евгеньевич",
+    lines: [
+      "Хм.",
+      "Редкий случай — студент, который действительно готов.",
+      "Не разочаруйте меня."
+    ],
+  },
+
+  professorProgressionTalk2: {
+    speaker: "Александр Евгеньевич",
+    lines: [
+      "Вы слишком часто попадаетесь мне на глаза.",
+      "Это либо хорошо...",
+      "либо очень плохо."
+    ],
+  },
+
+  professorProgressionTalk5: {
+    speaker: "Александр Евгеньевич",
+    lines: [
+      "Я наблюдаю за вами.",
+      "И должен признать...",
+      "в вас есть потенциал."
+    ],
+  },
+
+  professorRareTalk: {
+    speaker: "Александр Евгеньевич",
+    lines: [
+      "...знаете,",
+      "иногда я сам ненавижу этот экзамен."
+    ],
+  },
+
+  /* ===== НОВЫЕ ДИАЛОГИ СВЕТЫ ===== */
+
+  svetaConditionalHighAnxiety: {
+    speaker: "Света",
+    lines: [
+      "Ты реально на грани.",
+      "Слушай... если так пойдёт, ты просто всё забудешь.",
+      "Попробуй хоть немного успокоиться."
+    ],
+  },
+
+  svetaConditionalHighPrep: {
+    speaker: "Света",
+    lines: [
+      "Ты слишком спокойный для этого места.",
+      "Либо ты гений… либо я чего-то не понимаю.",
+      "Но мне кажется, ты справишься."
+    ],
+  },
+
+  svetaProgressionTalk3: {
+    speaker: "Света",
+    lines: [
+      "Ты снова пришёл ко мне поговорить?",
+      "Это... немного неожиданно.",
+      "Но приятно."
+    ],
+  },
+
+  svetaProgressionTalk6: {
+    speaker: "Света",
+    lines: [
+      "Знаешь...",
+      "Когда ты рядом, мне самой становится спокойнее.",
+      "Странно, да?"
+    ],
+  },
+
+  svetaRareTalk: {
+    speaker: "Света",
+    lines: [
+      "Иногда мне кажется...",
+      "что этот день никогда не закончится."
+    ],
+  },
+
+  svetaRepeat1: {
+    speaker: "Света",
+    lines: [
+      "Ты что-то хотел спросить?",
+      "Или просто молча постоять рядом?"
+    ],
+  },
+
+  svetaRepeat2: {
+    speaker: "Света",
+    lines: [
+      "Время идёт...",
+      "Экзамен сам себя не сдаст."
+    ],
+  },
+
+  professorRepeat1: {
+    speaker: "Александр Евгеньевич",
+    lines: [
+      "Вы что-то хотели?",
+      "Говорите по делу."
+    ],
+  },
+
+  professorRepeat2: {
+    speaker: "Александр Евгеньевич",
+    lines: [
+      "Время идёт.",
+      "Не тратьте ни своё, ни моё."
+    ],
+  },
+
+  /* ===== ПРОФЕССОР (КОРИДОР) ===== */
 
   professorTalk: {
     speaker: "Александр Евгеньевич",
     lines: [
-      "Так, студенты.",
-      "Экзамен начнётся через 10 минут.",
-      "Кто опоздает — не пущу.",
+      "Вы опоздали.",
+      "...хотя, впрочем, это уже никого не удивляет.",
+      "Имя?"
     ],
     choices: [
       {
-        text: "Честно признаться",
-        nextScene: "professorHonest",
+        text: "Назвать имя уверенно",
+        effects: { confidence: +5 },
+        nextScene: "professorHonest"
       },
       {
-        text: "Сказать что всё нормально",
-        nextScene: "professorLie",
-      },
-      {
-        text: "Попросить совет",
-        nextScene: "professorAdvice",
+        text: "Замяться",
+        effects: { anxiety: +5 },
+        nextScene: "professorLie"
       },
     ],
   },
 
   professorHonest: {
     speaker: "Васька",
-    lines: ["Да, профессор... нервничаю."],
+    lines: ["Петров."],
     onComplete: (state) => {
       state?.incCounter("anxiety", -1);
       state?.setFlag("talked_professor_corridor");
@@ -469,7 +635,7 @@ export const STORY_SCENES = {
 
   professorLie: {
     speaker: "Васька",
-    lines: ["Да не, всё нормально."],
+    lines: ["Э-э-э... Петров..."],
     onComplete: (state) => {
       state?.incCounter("anxiety", 1);
       state?.setFlag("talked_professor_corridor");
@@ -477,20 +643,9 @@ export const STORY_SCENES = {
     },
   },
 
-  professorAdvice: {
-    speaker: "Александр Евгеньевич",
-    lines: ["Отвечай по существу.", "Если не знаешь — не выдумывай."],
-    onComplete: (state) => {
-      state?.incCounter("preparation", 1);
-      state?.incCounter("anxiety", -1);
-      state?.setFlag("talked_professor_corridor");
-      state?.setValue("currentGoal", "exam");
-    },
-  },
-
   professorCorridorRepeat: {
     speaker: "Александр Евгеньевич",
-    lines: ["Не задерживайся в коридоре. Заходи в аудиторию."],
+    lines: ["Чего стоите? Заходите в аудиторию."],
   },
 
   audienceTimeSkip: {
@@ -504,7 +659,7 @@ export const STORY_SCENES = {
   /* ===== ЭКЗАМЕН ===== */
 
   examStart: {
-    speaker: "Профессор",
+    speaker: "Александр Евгеньевич",
     lines: ["Фамилия?", "Садись. Тяни билет."],
   },
 
@@ -514,14 +669,14 @@ export const STORY_SCENES = {
   },
 
   examAlreadyFinished: {
-    speaker: "Профессор",
+    speaker: "Александр Евгеньевич",
     lines: ["Экзамен для тебя уже закончился."],
   },
 
   /* ===== КОНЦОВКИ ===== */
 
   endingPerfect: {
-    speaker: "Профессор",
+    speaker: "Александр Евгеньевич",
     lines: [
       "Отлично, Петров.",
       "Редко вижу такой уверенный ответ.",
@@ -530,22 +685,22 @@ export const STORY_SCENES = {
   },
 
   endingGood: {
-    speaker: "Профессор",
+    speaker: "Александр Евгеньевич",
     lines: ["Неплохо.", "Есть мелкие огрехи, но в целом хорошо.", "Четвёрка."],
   },
 
   endingNormal: {
-    speaker: "Профессор",
+    speaker: "Александр Евгеньевич",
     lines: ["На троечку.", "Но видно, что старался.", "Свободен."],
   },
 
   endingEdge: {
-    speaker: "Профессор",
+    speaker: "Александр Евгеньевич",
     lines: ["Петров...", "На грани.", "Ладно, тройка. Иди."],
   },
 
   endingFail: {
-    speaker: "Профессор",
+    speaker: "Александр Евгеньевич",
     lines: ["Пересдача.", "Следующий."],
   },
 };
@@ -569,10 +724,39 @@ export const NPC_DIALOGUES = {
       useScene: "svetaFortuneTalk",
     },
 
-    repeat: {
-      speaker: "Света",
-      lines: ["Я уже всё сказала.", "Теперь всё зависит от тебя."],
-    },
+    conditional: [
+      {
+        condition: (state) => (state?.getValue("anxiety") ?? 0) > 70,
+        dialogue: { useScene: "svetaConditionalHighAnxiety" }
+      },
+      {
+        condition: (state) => (state?.getValue("preparation") ?? 0) > 80,
+        dialogue: { useScene: "svetaConditionalHighPrep" }
+      }
+    ],
+
+    progression: [
+      {
+        minTalks: 3,
+        dialogue: { useScene: "svetaProgressionTalk3" }
+      },
+      {
+        minTalks: 6,
+        dialogue: { useScene: "svetaProgressionTalk6" }
+      }
+    ],
+
+    repeat: [
+      { useScene: "svetaRepeat1" },
+      { useScene: "svetaRepeat2" }
+    ],
+
+    rare: [
+      {
+        chance: 0.12,
+        dialogue: { useScene: "svetaRareTalk" }
+      }
+    ]
   },
 
   Professor: {
@@ -580,9 +764,39 @@ export const NPC_DIALOGUES = {
       useScene: "professorTalk",
     },
 
-    repeat: {
-      useScene: "professorCorridorRepeat",
-    },
+    conditional: [
+      {
+        condition: (state) => (state?.getValue("preparation") ?? 0) < 30,
+        dialogue: { useScene: "professorConditionalLowPrep" }
+      },
+      {
+        condition: (state) => (state?.getValue("preparation") ?? 0) > 80,
+        dialogue: { useScene: "professorConditionalHighPrep" }
+      }
+    ],
+
+    progression: [
+      {
+        minTalks: 2,
+        dialogue: { useScene: "professorProgressionTalk2" }
+      },
+      {
+        minTalks: 5,
+        dialogue: { useScene: "professorProgressionTalk5" }
+      }
+    ],
+
+    repeat: [
+      { useScene: "professorRepeat1" },
+      { useScene: "professorRepeat2" }
+    ],
+
+    rare: [
+      {
+        chance: 0.08,
+        dialogue: { useScene: "professorRareTalk" }
+      }
+    ]
   },
 
   ProfessorEntrance: {
