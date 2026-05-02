@@ -170,7 +170,7 @@ export function createInteractionSystem(
       useToilet();
       return;
     }
-
+ 
     if (!state.hasFlag("met_Semyon")) {
       dialogueManager.startScene("needTalkToSemyonBeforeExit");
       return;
