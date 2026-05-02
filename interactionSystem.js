@@ -171,6 +171,16 @@ export function createInteractionSystem(
       return;
     }
 
+     // ===== НОВАЯ ПРОВЕРКА: поговорил ли с Семёном =====
+    if (!state.hasFlag("talked_to_semyon")) {
+      dialogueUI.show({
+      speaker: "Подсказка",
+      lines: [" Сначала поговори с Семёном!", "Он сидит в комнате. Нажми на него."],
+    });
+    return;
+  }
+ 
+
     if (!state.hasFlag("met_Semyon")) {
       dialogueManager.startScene("needTalkToSemyonBeforeExit");
       return;
