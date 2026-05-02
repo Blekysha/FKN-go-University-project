@@ -179,6 +179,15 @@ export function createInteractionSystem(
     });
     return;
   }
+
+    // ===== ПРОВЕРКА 2: нашёл ли ключ =====
+    if (!state.hasFlag("has_key")) {
+      dialogueUI.show({
+      speaker: "Подсказка",
+      lines: ["🔑 Найди ключ, чтобы выйти из комнаты!"],
+    });
+    return;
+  }
  
 
     if (!state.hasFlag("met_Semyon")) {
