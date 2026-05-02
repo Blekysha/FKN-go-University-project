@@ -197,126 +197,118 @@ export const STORY_SCENES = {
   },
 
   svetaFortuneTalk: {
-    speaker: "Света",
-    lines: [
-      "*открывает дверь*",
-      "Ой, привет... заходи, чего в дверях мёрзнуть?",
-      "Ты тоже на экзамен, да?",
-      "Выглядишь как человек, который только что узнал, что жизнь — боль.",
-      "Не парься, тут все такие."
-    ],
-    choices: [
-      {
-        text: "Да я вообще не в дуге... полный провал",
-        effects: { anxiety: +10, social: +5 },
-        nextScene: "svetaComfort"
-      },
-      {
-        text: "Да норм, я справлюсь",
-        effects: { preparation: +5, confidence: +3 },
-        nextScene: "svetaFortune"
-      },
-    ],
-  },
-
-  svetaComfort: {
-    speaker: "Света",
-    lines: [
-      "Сядь, выдохни.",
-      "Ты себя накручиваешь.",
-      "Иногда надо просто довериться процессу, как в гадании.",
-      "Экзамен ты сдашь. Но многое зависит от твоих решений сегодня."
-    ],
-    choices: [
-      {
-        text: "Может, чайку?..",
-        nextScene: "svetaTea",
-      },
-      {
-        text: "Пойду к Семёну, может, он что-то знает",
-        nextScene: "goBackToSemyon",
-      },
-      {
-        text: "Пойду лучше поучусь, пока время есть",
-        nextScene: "studyAfterSveta",
-        effects: [{ type: "setValue", id: "currentGoal", value: "study" }],
-      },
-    ],
-  },
-
-  svetaFortune: {
-    speaker: "Света",
-    lines: [
-      "Я чувствую в тебе какой-то стержень.",
-      "*тасует карты*",
-      "Хм. Экзамен ты сдашь.",
-      "Но знаешь... удача любит тех, кто хоть что-то учил.",
-      "Просто так ничего не падает."
-    ],
-    choices: [
-      {
-        text: "Спасибо. Может, чаю?",
-        nextScene: "svetaTea",
-      },
-      {
-        text: "Ладно, пойду к Семёну",
-        nextScene: "goBackToSemyon",
-      },
-      {
-        text: "Пойду повторю материал",
-        nextScene: "studyAfterSveta",
-        effects: [{ type: "setValue", id: "currentGoal", value: "study" }],
-      },
-    ],
-  },
-
-  svetaFortuneTalkAfterStudy: {
-    speaker: "Света",
-    lines: [
-      "О, Васька, заходи.",
-      "Ты уже позанимался? По лицу видно — уставший.",
-      "Долго не сиди, времени до экзамена почти не осталось."
-    ],
-    choices: [
-      {
-        text: "Чайку на дорожку?",
-        nextScene: "svetaTeaAfterStudy",
-      },
-      {
-        text: "Пойду, скажу Семёну, что всё пучком",
-        nextScene: "goBackToSemyonAfterStudy",
-      },
-    ],
-  },
-
-  svetaTea: {
-    speaker: "Света",
-    lines: [
-      "Садись, заварю покрепче.",
-      "Знаешь, иногда лучше выгрузить голову, чем забивать её ещё больше."
-    ],
-    onComplete: (state) => {
-      state?.incCounter("anxiety", -2);
-      state?.incCounter("fatigue", -1);
-      state?.setFlag("visited_sveta");
-      state?.setValue("currentGoal", "university");
+  speaker: "Света",
+  lines: [
+    "(тихо, не поднимая головы) Заходи... Дверь не скрипи, она не любит громких.",
+    "Я ждала тебя. Садись напротив. Свечи сегодня ярко горят — знак.",
+    "Ты выглядишь... потерянным. Как будто тень от экзамена уже накрыла тебя с головой.",
+    "(пауза, смотрит на карты) Не бойся. Здесь не колдуют. Здесь просто... смотрят. Вглубь.",
+  ],
+  choices: [
+    {
+      text: "Погадай мне... страшно, если честно",
+      effects: { anxiety: -2, sveta_relation: +2 },
+      nextScene: "svetaFortuneReal"
     },
-  },
-
-  svetaTeaAfterStudy: {
-    speaker: "Света",
-    lines: [
-      "Держи кружку.",
-      "Горячий чай — лучшее лекарство перед экзаменом.",
-      "Не парься, всё будет нормально."
-    ],
-    onComplete: (state) => {
-      state?.incCounter("anxiety", -2);
-      state?.incCounter("fatigue", -1);
-      state?.setFlag("visited_sveta");
-      state?.setValue("currentGoal", "university");
+    {
+      text: "Я вообще-то не верю в эту эзотерику",
+      effects: { anxiety: +1, sveta_relation: -1 },
+      nextScene: "svetaFortuneSkeptic"
     },
+    {
+      text: "Может, просто чаю попьём? Без карт",
+      effects: { anxiety: -1, sveta_relation: +1 },
+      nextScene: "svetaTea"
+    },
+  ],
+},
+
+svetaFortuneReal: {
+  speaker: "Света",
+  lines: [
+    "(берёт карты, тасует странно — медленно, будто шепчет каждой)",
+    "Закрой глаза. Не думай об экзамене. Думай о том, чего боишься больше всего.",
+    "(выкладывает три карты) Хм... Старшие Арканы. Это серьёзно.",
+    "Экзамен... ты сдашь. Но есть нюанс. Сегодня у тебя будет выбор.",
+    "Если пойдёшь направо — получишь лёгкость. Если налево — знания. Если прямо — останешься один.",
+    "(поднимает глаза) Что выберешь — то и будет. Я не говорю, что лучше. Карты не советуют, они показывают дороги.",
+    "И ещё... Не бери билет с интегралами. Ты их не выучил. Бери графики. Там твоё.",
+  ],
+  onComplete: (state) => {
+    state?.incCounter("anxiety", -2);
+    state?.incCounter("fatigue", -1);
+    state?.setFlag("visited_sveta");
+    state?.setFlag("can_choose_exam_ticket");
+    state?.setValue("currentGoal", "university");
   },
+},
+
+svetaFortuneSkeptic: {
+  speaker: "Света",
+  lines: [
+    "(усмехается) Не веришь? А зря.",
+    "Картам всё равно, веришь ты или нет. Они говорят правду. Просто ты не хочешь слышать.",
+    "(быстро тасует, вытягивает одну карту) Шут. Перевёрнутый.",
+    "Ну что ж... Значит, будешь учиться сам. Держись. Экзамен сдашь, но дорога будет длинной и уставшей.",
+  ],
+  onComplete: (state) => {
+    state?.incCounter("anxiety", 1);
+    state?.setFlag("visited_sveta");
+    state?.setValue("currentGoal", "university");
+  },
+},
+
+svetaTea: {
+  speaker: "Света",
+  lines: [
+    "(наливает чай в глиняную кружку, пар поднимается причудливыми узорами)",
+    "Держи. С ромашкой и мятой. Для нервов.",
+    "Твоя тревога имеет запах. Как старая бумага и пыль. Чай это уберёт.",
+    "(пауза, смотрит на кружку) Не торопись. Выдохни. Через час экзамен не убежит.",
+    "Просто будь собой. Даже если очень хочется стать кем-то умнее.",
+  ],
+  onComplete: (state) => {
+    state?.incCounter("anxiety", -3);
+    state?.incCounter("fatigue", -1);
+    state?.setFlag("visited_sveta");
+    state?.setValue("currentGoal", "university");
+  },
+},
+
+svetaFortuneTalkAfterStudy: {
+  speaker: "Света",
+  lines: [
+    "(не поворачиваясь, смотрит на пламя свечи) А, это ты... По лицу вижу — учил.",
+    "У тебя под глазами круги. И пахнет от тебя усталостью и кофеином.",
+    "Второй раз за сегодня? Ну заходи. Но долго не сиди.",
+    "Карты говорят: ты почти готов. Осталось только не наломать дров перед дверью.",
+  ],
+  choices: [
+    {
+      text: "Ещё чаю? На посошок",
+      nextScene: "svetaTeaAfterStudy",
+    },
+    {
+      text: "Пойду к Семёну, вместе веселее",
+      nextScene: "goBackToSemyonAfterStudy",
+    },
+  ],
+},
+
+svetaTeaAfterStudy: {
+  speaker: "Света",
+  lines: [
+    "(наливает чай, добавляет что-то из маленькой баночки) Это зверобой.",
+    "Убирает тревожные мысли. И делает сны яркими.",
+    "(подаёт кружку) Пей медленно. И помни: ты не дурак. Ты просто устал. Это лечится.",
+  ],
+  onComplete: (state) => {
+    state?.incCounter("anxiety", -2);
+    state?.incCounter("fatigue", -2);
+    state?.setFlag("visited_sveta");
+    state?.setValue("currentGoal", "university");
+  },
+},
 
   /* ===== СЕМЁН ПОСЛЕ СВЕТЫ ===== */
 
