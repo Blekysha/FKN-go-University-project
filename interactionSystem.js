@@ -170,26 +170,7 @@ export function createInteractionSystem(
       useToilet();
       return;
     }
-
-     // ===== НОВАЯ ПРОВЕРКА: поговорил ли с Семёном =====
-    if (!state.hasFlag("talked_to_semyon")) {
-      dialogueUI.show({
-      speaker: "Подсказка",
-      lines: [" Сначала поговори с Семёном!", "Он сидит в комнате. Нажми на него."],
-    });
-    return;
-  }
-
-    // ===== ПРОВЕРКА 2: нашёл ли ключ =====
-    if (!state.hasFlag("has_key")) {
-      dialogueUI.show({
-      speaker: "Подсказка",
-      lines: ["🔑 Найди ключ, чтобы выйти из комнаты!"],
-    });
-    return;
-  }
  
-
     if (!state.hasFlag("met_Semyon")) {
       dialogueManager.startScene("needTalkToSemyonBeforeExit");
       return;
