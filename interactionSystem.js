@@ -845,8 +845,20 @@ export function createInteractionSystem(
 
   function openStudyDeskChoice() {
     dialogueUI.onChoice = (choice) => {
+      story?.applyEffects(choice.effects);
+
       if (choice.action === "study") {
         dialogueManager.startScene("studySession");
+        return;
+      }
+
+      if (choice.action === "studyWithSemyon") {
+        dialogueManager.startScene("studyWithSemyon");
+        return;
+      }
+
+      if (choice.action === "studyDeepTopic") {
+        dialogueManager.startScene("studyDeepTopic");
         return;
       }
 
@@ -865,11 +877,25 @@ export function createInteractionSystem(
       speaker: "Васька",
       lines: [
         "Так... стол, конспекты и компьютер.",
-        "Можно заняться подготовкой.",
-        "А можно чуть-чуть отвлечься.",
+        "Если уж садиться, надо решить, как тратить время.",
       ],
       choices: [
-        { text: "Готовиться к экзамену", action: "study" },
+        { text: "Учиться самому", action: "study" },
+        {
+          text: "Окликнуть Семёна и поговорить, пока учишься",
+          action: "studyWithSemyon",
+        },
+        {
+          text: "Углубиться в самую сложную тему",
+          action: "studyDeepTopic",
+          effects: [
+            { type: "incCounter", id: "preparation", delta: 2 },
+            { type: "incCounter", id: "fatigue", delta: 2 },
+            { type: "incCounter", id: "anxiety", delta: 1 },
+            { type: "setFlag", id: "studied_exam" },
+            { type: "setValue", id: "currentGoal", value: "university" },
+          ],
+        },
         { text: "Поиграть", action: "computer" },
       ],
     });
@@ -1130,6 +1156,8 @@ export function createInteractionSystem(
       ];
 
       showBlackScreen(deskLines, {
+        minSkipDelayMs: 500,
+        lineDelayMs: 450,
         onComplete: () => {
           state.setFlag("exam_prepared_answer");
           dialogueManager.startScene("examAnswerPrepared");

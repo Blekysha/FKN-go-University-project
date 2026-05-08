@@ -200,6 +200,130 @@ export const STORY_SCENES = {
     },
   },
 
+
+
+  studyWithSemyon: {
+    speaker: "Васька",
+    lines: [
+      "Васька остаётся сидеть у стола и открывает конспект.",
+      "Семён всё так же валяется на кровати с телефоном.",
+      "— Семён.",
+      "— М?",
+      "— У тебя бывает чувство, будто ты уже всё завалил, хотя ещё даже не вышел из комнаты?",
+      "— Постоянно. Это называется стабильность.",
+    ],
+    choices: [
+      {
+        text: "Пожаловаться, что всё вылетело из головы",
+        nextScene: "studyWithSemyonComplain",
+        effects: [
+          { type: "incCounter", id: "social", delta: 1 },
+          { type: "incCounter", id: "anxiety", delta: -2 },
+          { type: "incCounter", id: "fatigue", delta: 1 },
+          { type: "setFlag", id: "studied_exam" },
+          { type: "setValue", id: "currentGoal", value: "university" },
+        ],
+      },
+      {
+        text: "Спросить, как он вообще успокаивается",
+        nextScene: "studyWithSemyonAdvice",
+        effects: [
+          { type: "incCounter", id: "social", delta: 1 },
+          { type: "incCounter", id: "confidence", delta: 1 },
+          { type: "incCounter", id: "anxiety", delta: -1 },
+          { type: "setFlag", id: "studied_exam" },
+          { type: "setValue", id: "currentGoal", value: "university" },
+        ],
+      },
+      {
+        text: "Попробовать объяснить тему вслух",
+        nextScene: "studyWithSemyonExplainTopic",
+        effects: [
+          { type: "incCounter", id: "preparation", delta: 2 },
+          { type: "incCounter", id: "confidence", delta: 1 },
+          { type: "incCounter", id: "fatigue", delta: 1 },
+          { type: "setFlag", id: "studied_exam" },
+          { type: "setValue", id: "currentGoal", value: "university" },
+        ],
+      },
+      {
+        text: "Пошутить, чтобы хоть немного выдохнуть",
+        nextScene: "studyWithSemyonJoke",
+        effects: [
+          { type: "incCounter", id: "social", delta: 1 },
+          { type: "incCounter", id: "anxiety", delta: -2 },
+          { type: "setFlag", id: "studied_exam" },
+          { type: "setValue", id: "currentGoal", value: "university" },
+        ],
+      },
+    ],
+  },
+
+  studyWithSemyonComplain: {
+    speaker: "Семён",
+    lines: [
+      "— Ничего не помню вообще.",
+      "— Отлично. Значит, мозг освободил место под новые знания.",
+      "— Семён, это не помогает.",
+      "— Зато звучит научно.",
+      "Васька фыркает и всё-таки пролистывает пару страниц конспекта.",
+      "Паника не исчезает полностью, но уже не давит так сильно.",
+    ],
+  },
+
+  studyWithSemyonAdvice: {
+    speaker: "Семён",
+    lines: [
+      "— Ты как обычно успокаиваешься перед важным?",
+      "— Никак.",
+      "— Супер совет.",
+      "— Подожди. Я не закончил.",
+      "— Я просто иду и страдаю. Но с уверенным лицом.",
+      "— То есть стратегия — выглядеть так, будто всё под контролем?",
+      "— Именно. Внутри пожар, снаружи студент.",
+      "Васька невольно улыбается и делает пометку на полях конспекта.",
+    ],
+  },
+
+  studyWithSemyonExplainTopic: {
+    speaker: "Васька",
+    lines: [
+      "— Слушай. Я сейчас попробую объяснить тему вслух.",
+      "— Я могу не слушать?",
+      "— Можешь делать вид, что слушаешь.",
+      "— Это я умею профессионально.",
+      "Васька начинает объяснять тему простыми словами, сам себе спотыкаясь на формулировках.",
+      "На середине становится ясно, где именно он путался.",
+      "Семён поднимает палец, не отрываясь от телефона.",
+      "— Вот сейчас звучало почти умно.",
+      "— Почти?",
+      "— Не наглей перед экзаменом.",
+    ],
+  },
+
+  studyWithSemyonJoke: {
+    speaker: "Васька",
+    lines: [
+      "— Если я не вернусь после экзамена, считай меня академически мёртвым.",
+      "— Тогда можно я заберу твой чай?",
+      "— Семён.",
+      "— Что? Ты сам начал завещание.",
+      "Васька смеётся, хотя до этого был уверен, что уже разучился.",
+      "Учёбы от этого больше не становится, зато дышать становится легче.",
+    ],
+  },
+
+  studyDeepTopic: {
+    speaker: "Васька",
+    lines: [
+      "Ладно. Беру самую мерзкую тему.",
+      "Если она попадётся — я хотя бы не умру сразу.",
+      "*через несколько минут*",
+      "Голова гудит, зато стало чуть понятнее.",
+    ],
+  },
+
+
   studySession: {
     speaker: "Васька",
     lines: [
