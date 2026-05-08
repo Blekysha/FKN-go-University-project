@@ -124,37 +124,73 @@ export function createInteractionSystem(
     timers.push(window.setTimeout(revealNextLine, 250));
   }
 
+  function getBestScore(gameType) {
+    return Number(state?.getValue(`best_${gameType}_score`, 0) ?? 0);
+  }
 
-
-  function applyComputerGameEffects(gameType, result = {}) {
-    state?.setFlag("played_computer_game");
-    state?.setValue("playedComputerGameType", gameType);
-    state?.setValue("lastComputerGameResult", result);
-
-    // Общий смысл: Вася отдохнул эмоционально, но потерял время и устал.
-    state?.incCounter("anxiety", -1);
-    state?.incCounter("fatigue", 2);
-
-    if (gameType === "snake") {
-      state?.incCounter("social", 1);
-    } else if (gameType === "catch") {
-      state?.incCounter("luck", 1);
-    } else if (gameType === "pong") {
-      state?.incCounter("anxiety", -1);
-      state?.incCounter("fatigue", 1);
+  function setBestScore(gameType, score) {
+    const current = getBestScore(gameType);
+    if (score > current) {
+      state?.setValue(`best_${gameType}_score`, score);
     }
   }
 
-  function showMiniGame(gameType, { onComplete = null } = {}) {
-    const root = document.getElementById("miniGameOverlay");
-    const canvas = document.getElementById("miniGameCanvas");
-    const titleEl = document.getElementById("miniGameTitle");
-    const infoEl = document.getElementById("miniGameInfo");
-    const closeBtn = document.getElementById("miniGameClose");
+  function applyComputerSessionEffects(session) {
+    if (!session?.playedAny) return;
 
-    if (!root || !canvas || !closeBtn) {
-      console.warn("[interactionSystem] Не найдены DOM-элементы мини-игры.");
-      onComplete?.({ closed: true, score: 0 });
+    state?.setFlag("played_computer_game");
+    state?.setValue("currentGoal", "university");
+    state?.setValue("computerGameStats", {
+      snake: session.scores.snake,
+      catch: session.scores.catch,
+      pong: session.scores.pong,
+      totalScore: session.totalScore,
+    });
+
+    // Игры разгружают голову, но съедают время и силы.
+    state?.incCounter("anxiety", -1);
+    state?.incCounter("fatigue", 2);
+
+    if (session.scores.snake > 0) state?.incCounter("social", 1);
+    if (session.scores.catch >= 5) state?.incCounter("luck", 1);
+    if (session.scores.pong >= 5) state?.incCounter("anxiety", -1);
+  }
+
+  function openComputerMenu({ onComplete = null } = {}) {
+    const root = document.getElementById("miniGameOverlay");
+    const closeBtn = document.getElementById("miniGameClose");
+    const titleEl = document.getElementById("computerTitle");
+    const subtitleEl = document.getElementById("computerSubtitle");
+    const menuEl = document.getElementById("computerMenu");
+    const introEl = document.getElementById("computerGameIntro");
+    const playEl = document.getElementById("computerGamePlay");
+    const overEl = document.getElementById("computerGameOver");
+    const gameTitleEl = document.getElementById("miniGameTitle");
+    const bestEl = document.getElementById("miniGameBest");
+    const startBtn = document.getElementById("miniGameStart");
+    const backBtn = document.getElementById("miniGameBack");
+    const retryBtn = document.getElementById("miniGameRetry");
+    const toMenuBtn = document.getElementById("miniGameToMenu");
+    const resultTitleEl = document.getElementById("miniGameResultTitle");
+    const resultTextEl = document.getElementById("miniGameResultText");
+    const canvas = document.getElementById("miniGameCanvas");
+    const scoreEl = document.getElementById("miniGameScore");
+    const livesEl = document.getElementById("miniGameLives");
+    const infoEl = document.getElementById("miniGameInfo");
+
+    if (
+      !root ||
+      !canvas ||
+      !closeBtn ||
+      !menuEl ||
+      !introEl ||
+      !playEl ||
+      !overEl
+    ) {
+      console.warn(
+        "[interactionSystem] Не найдены DOM-элементы компьютерного меню."
+      );
+      onComplete?.({ playedAny: false });
       return;
     }
 
@@ -163,11 +199,22 @@ export function createInteractionSystem(
     const ctx = canvas.getContext("2d");
     const W = canvas.width;
     const H = canvas.height;
-    let animationId = null;
-    let intervalId = null;
+    const titles = {
+      snake: "Змейка",
+      catch: "Ловля мячиков",
+      pong: "Отбей мяч",
+    };
+
+    const session = {
+      playedAny: false,
+      totalScore: 0,
+      scores: { snake: 0, catch: 0, pong: 0 },
+    };
+
+    let selectedGame = null;
+    let gameStop = null;
+    let lastScore = 0;
     let closed = false;
-    let score = 0;
-    const keys = new Set();
 
     miniGameActive = true;
     playerSprite.setVelocity(0);
@@ -177,95 +224,219 @@ export function createInteractionSystem(
     root.style.display = "flex";
     root.setAttribute("aria-hidden", "false");
 
-    const titles = {
-      snake: "Змейка",
-      catch: "Ловля мячиков",
-      pong: "Отбей мяч",
-    };
+    function setScreen(screen) {
+      menuEl.hidden = screen !== "menu";
+      introEl.hidden = screen !== "intro";
+      playEl.hidden = screen !== "play";
+      overEl.hidden = screen !== "over";
+    }
 
-    titleEl.textContent = titles[gameType] ?? "Мини-игра";
-    infoEl.textContent = "WASD / стрелки — управление. Крестик — выйти.";
+    function setHeader(title, subtitle) {
+      if (titleEl) titleEl.textContent = title;
+      if (subtitleEl) subtitleEl.textContent = subtitle;
+    }
 
-    const clear = () => {
+    function drawBackground() {
       ctx.fillStyle = "#050505";
       ctx.fillRect(0, 0, W, H);
-    };
+      ctx.strokeStyle = "rgba(255,255,255,0.08)";
+      for (let x = 0; x < W; x += 20) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, H);
+        ctx.stroke();
+      }
+      for (let y = 0; y < H; y += 20) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(W, y);
+        ctx.stroke();
+      }
+    }
 
-    const drawText = (text, y = H / 2) => {
-      ctx.fillStyle = "#ffffffe2";
-      ctx.font = "18px monospace";
-      ctx.textAlign = "center";
-      ctx.fillText(text, W / 2, y);
-    };
+    function updateHud(score, lives, hint) {
+      if (scoreEl) scoreEl.textContent = `Очки: ${score}`;
+      if (livesEl) {
+        const full = Math.max(0, lives);
+        const empty = Math.max(0, 3 - full);
+        livesEl.textContent = "●".repeat(full) + "○".repeat(empty);
+      }
+      if (infoEl) infoEl.textContent = hint;
+    }
 
-    const finish = (reason = "end") => {
+    function stopCurrentGame() {
+      if (typeof gameStop === "function") {
+        gameStop();
+        gameStop = null;
+      }
+    }
+
+    function finishGame(reason, score) {
+      stopCurrentGame();
+      lastScore = score;
+      session.playedAny = true;
+      session.totalScore += score;
+      session.scores[selectedGame] = Math.max(
+        session.scores[selectedGame] ?? 0,
+        score
+      );
+      setBestScore(selectedGame, score);
+
+      setHeader(titles[selectedGame], "Раунд завершён");
+      if (resultTitleEl)
+        resultTitleEl.textContent =
+          reason === "closed" ? "Игра остановлена" : "Игра окончена";
+      if (resultTextEl) {
+        resultTextEl.textContent = `Счёт: ${score}. Лучший счёт: ${getBestScore(
+          selectedGame
+        )}.`;
+      }
+      setScreen("over");
+    }
+
+    function showMenu() {
+      stopCurrentGame();
+      selectedGame = null;
+      setHeader("Компьютер", "Выберите игру");
+      setScreen("menu");
+    }
+
+    function showIntro(gameType) {
+      stopCurrentGame();
+      selectedGame = gameType;
+      setHeader(titles[gameType], "Перед запуском");
+      if (gameTitleEl) gameTitleEl.textContent = titles[gameType];
+      if (bestEl) bestEl.textContent = `Лучший счёт: ${getBestScore(gameType)}`;
+      setScreen("intro");
+    }
+
+    function closeComputer() {
       if (closed) return;
       closed = true;
-      if (animationId) cancelAnimationFrame(animationId);
-      if (intervalId) window.clearInterval(intervalId);
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("keyup", onKeyUp);
-      closeBtn.removeEventListener("click", closeByButton);
+      stopCurrentGame();
+      closeBtn.removeEventListener("click", closeComputer);
+      startBtn?.removeEventListener("click", startSelectedGame);
+      backBtn?.removeEventListener("click", showMenu);
+      retryBtn?.removeEventListener("click", startSelectedGame);
+      toMenuBtn?.removeEventListener("click", showMenu);
+      menuEl.querySelectorAll("[data-game]").forEach((btn) => {
+        btn.removeEventListener("click", onGameCardClick);
+      });
 
       root.style.display = "none";
       root.setAttribute("aria-hidden", "true");
-
       playerSprite.setVisible(true);
       if (playerSprite.body) playerSprite.body.enable = true;
-
       miniGameActive = false;
       miniGameCleanup = null;
-      onComplete?.({ reason, score });
-    };
 
-    miniGameCleanup = () => finish("cleanup");
-
-    const closeByButton = () => finish("closed");
-
-    const onKeyDown = (e) => {
-      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "KeyW", "KeyA", "KeyS", "KeyD", "Space"].includes(e.code)) {
-        e.preventDefault();
+      if (session.playedAny) {
+        applyComputerSessionEffects(session);
+        dialogueManager.startScene("afterComputerGame");
       }
-      keys.add(e.code);
-    };
 
-    const onKeyUp = (e) => keys.delete(e.code);
+      onComplete?.(session);
+    }
 
-    window.addEventListener("keydown", onKeyDown, { passive: false });
-    window.addEventListener("keyup", onKeyUp);
-    closeBtn.addEventListener("click", closeByButton);
+    function onGameCardClick(e) {
+      const gameType = e.currentTarget.dataset.game;
+      showIntro(gameType);
+    }
 
-    function startSnake() {
+    function startSelectedGame() {
+      if (!selectedGame) return;
+      setHeader(titles[selectedGame], "Игра идёт");
+      setScreen("play");
+      if (selectedGame === "snake")
+        gameStop = startSnake((reason, score) => finishGame(reason, score));
+      else if (selectedGame === "catch")
+        gameStop = startCatch((reason, score) => finishGame(reason, score));
+      else gameStop = startPong((reason, score) => finishGame(reason, score));
+    }
+
+    function startSnake(done) {
       const cell = 15;
       const cols = Math.floor(W / cell);
       const rows = Math.floor(H / cell);
-      let snake = [{ x: 8, y: 8 }];
+      let snake = [
+        { x: 8, y: 8 },
+        { x: 7, y: 8 },
+        { x: 6, y: 8 },
+      ];
       let dir = { x: 1, y: 0 };
-      let nextDir = { x: 1, y: 0 };
+      let queuedDir = { x: 1, y: 0 };
       let food = { x: 14, y: 9 };
+      let score = 0;
+      let stopped = false;
+      let intervalId = null;
 
       const placeFood = () => {
-        food = {
-          x: Math.floor(Math.random() * cols),
-          y: Math.floor(Math.random() * rows),
-        };
+        do {
+          food = {
+            x: Math.floor(Math.random() * cols),
+            y: Math.floor(Math.random() * rows),
+          };
+        } while (snake.some((part) => part.x === food.x && part.y === food.y));
       };
 
-      intervalId = window.setInterval(() => {
-        if ((keys.has("ArrowLeft") || keys.has("KeyA")) && dir.x !== 1) nextDir = { x: -1, y: 0 };
-        if ((keys.has("ArrowRight") || keys.has("KeyD")) && dir.x !== -1) nextDir = { x: 1, y: 0 };
-        if ((keys.has("ArrowUp") || keys.has("KeyW")) && dir.y !== 1) nextDir = { x: 0, y: -1 };
-        if ((keys.has("ArrowDown") || keys.has("KeyS")) && dir.y !== -1) nextDir = { x: 0, y: 1 };
-        dir = nextDir;
+      const setDirection = (next) => {
+        if (next.x + dir.x === 0 && next.y + dir.y === 0) return;
+        queuedDir = next;
+      };
 
+      const onKeyDown = (e) => {
+        if (
+          [
+            "ArrowLeft",
+            "ArrowRight",
+            "ArrowUp",
+            "ArrowDown",
+            "KeyW",
+            "KeyA",
+            "KeyS",
+            "KeyD",
+          ].includes(e.code)
+        ) {
+          e.preventDefault();
+        }
+        if (e.code === "ArrowLeft" || e.code === "KeyA")
+          setDirection({ x: -1, y: 0 });
+        if (e.code === "ArrowRight" || e.code === "KeyD")
+          setDirection({ x: 1, y: 0 });
+        if (e.code === "ArrowUp" || e.code === "KeyW")
+          setDirection({ x: 0, y: -1 });
+        if (e.code === "ArrowDown" || e.code === "KeyS")
+          setDirection({ x: 0, y: 1 });
+      };
+
+      const draw = () => {
+        drawBackground();
+        ctx.fillStyle = "#f2d16b";
+        ctx.fillRect(food.x * cell + 2, food.y * cell + 2, cell - 4, cell - 4);
+        snake.forEach((part, idx) => {
+          ctx.fillStyle = idx === 0 ? "#b8f28b" : "#7fcf75";
+          ctx.fillRect(
+            part.x * cell + 1,
+            part.y * cell + 1,
+            cell - 2,
+            cell - 2
+          );
+        });
+        updateHud(score, 1, "WASD / стрелки — повернуть змейку");
+      };
+
+      const tick = () => {
+        dir = queuedDir;
         const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
-        const hitWall = head.x < 0 || head.y < 0 || head.x >= cols || head.y >= rows;
-        const hitSelf = snake.some((part) => part.x === head.x && part.y === head.y);
+        const hitWall =
+          head.x < 0 || head.y < 0 || head.x >= cols || head.y >= rows;
+        const hitSelf = snake.some(
+          (part) => part.x === head.x && part.y === head.y
+        );
         if (hitWall || hitSelf) {
-          finish("lose");
+          done("lose", score);
           return;
         }
-
         snake.unshift(head);
         if (head.x === food.x && head.y === food.y) {
           score += 1;
@@ -273,74 +444,135 @@ export function createInteractionSystem(
         } else {
           snake.pop();
         }
+        draw();
+      };
 
-        clear();
-        ctx.fillStyle = "#dddddd";
-        ctx.fillRect(food.x * cell, food.y * cell, cell - 2, cell - 2);
-        ctx.fillStyle = "#8fd18f";
-        snake.forEach((part) => ctx.fillRect(part.x * cell, part.y * cell, cell - 2, cell - 2));
-        infoEl.textContent = `Очки: ${score}. WASD / стрелки — управление. Крестик — выйти.`;
-      }, 120);
+      window.addEventListener("keydown", onKeyDown, { passive: false });
+      draw();
+      intervalId = window.setInterval(tick, 155);
+
+      return () => {
+        if (stopped) return;
+        stopped = true;
+        window.clearInterval(intervalId);
+        window.removeEventListener("keydown", onKeyDown);
+      };
     }
 
-    function startCatch() {
-      let basketX = W / 2 - 35;
-      const basketW = 70;
+    function startCatch(done) {
+      let basketX = W / 2 - 36;
+      const basketW = 72;
       const basketY = H - 28;
       let lives = 3;
+      let score = 0;
       const balls = [];
       let lastSpawn = 0;
+      let animationId = null;
+      let stopped = false;
+      const keys = new Set();
+
+      const onKeyDown = (e) => {
+        if (["ArrowLeft", "ArrowRight", "KeyA", "KeyD"].includes(e.code))
+          e.preventDefault();
+        keys.add(e.code);
+      };
+      const onKeyUp = (e) => keys.delete(e.code);
 
       const loop = (time) => {
-        if (keys.has("ArrowLeft") || keys.has("KeyA")) basketX -= 5;
-        if (keys.has("ArrowRight") || keys.has("KeyD")) basketX += 5;
+        if (stopped) return;
+        if (keys.has("ArrowLeft") || keys.has("KeyA")) basketX -= 4.2;
+        if (keys.has("ArrowRight") || keys.has("KeyD")) basketX += 4.2;
         basketX = Math.max(0, Math.min(W - basketW, basketX));
 
-        if (time - lastSpawn > 650) {
-          balls.push({ x: 15 + Math.random() * (W - 30), y: -10, r: 8, vy: 2.4 + Math.random() * 1.5 });
+        if (time - lastSpawn > 900) {
+          balls.push({
+            x: 18 + Math.random() * (W - 36),
+            y: -10,
+            r: 8,
+            vy: 1.8 + Math.random() * 1.1,
+          });
           lastSpawn = time;
         }
 
         for (let i = balls.length - 1; i >= 0; i--) {
           const b = balls[i];
           b.y += b.vy;
-          if (b.y + b.r >= basketY && b.x >= basketX && b.x <= basketX + basketW) {
+          if (
+            b.y + b.r >= basketY &&
+            b.x >= basketX &&
+            b.x <= basketX + basketW
+          ) {
             score += 1;
             balls.splice(i, 1);
           } else if (b.y - b.r > H) {
             lives -= 1;
             balls.splice(i, 1);
             if (lives <= 0) {
-              finish("lose");
+              done("lose", score);
               return;
             }
           }
         }
 
-        clear();
-        ctx.fillStyle = "#cfcfcf";
+        drawBackground();
         balls.forEach((b) => {
+          ctx.fillStyle = "#f2d16b";
           ctx.beginPath();
           ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
           ctx.fill();
         });
         ctx.fillStyle = "#8fd1ff";
         ctx.fillRect(basketX, basketY, basketW, 12);
-        infoEl.textContent = `Поймано: ${score}. Жизни: ${lives}. A/D или стрелки — корзинка.`;
+        ctx.fillRect(basketX + 8, basketY + 12, basketW - 16, 5);
+        updateHud(score, lives, "A/D или стрелки — двигать корзинку");
         animationId = requestAnimationFrame(loop);
       };
+
+      window.addEventListener("keydown", onKeyDown, { passive: false });
+      window.addEventListener("keyup", onKeyUp);
       animationId = requestAnimationFrame(loop);
+
+      return () => {
+        if (stopped) return;
+        stopped = true;
+        cancelAnimationFrame(animationId);
+        window.removeEventListener("keydown", onKeyDown);
+        window.removeEventListener("keyup", onKeyUp);
+      };
     }
 
-    function startPong() {
-      let paddleX = W / 2 - 45;
-      const paddleW = 90;
-      const paddleY = H - 24;
-      let ball = { x: W / 2, y: H / 2, vx: 3, vy: -3, r: 7 };
+    function startPong(done) {
+      let paddleX = W / 2 - 46;
+      const paddleW = 92;
+      const paddleY = H - 25;
+      let lives = 3;
+      let score = 0;
+      let ball = { x: W / 2, y: H / 2, vx: 2.4, vy: -2.6, r: 7 };
+      const keys = new Set();
+      let animationId = null;
+      let stopped = false;
+
+      const resetBall = () => {
+        ball = {
+          x: W / 2,
+          y: H / 2,
+          vx: Math.random() > 0.5 ? 2.4 : -2.4,
+          vy: -2.6,
+          r: 7,
+        };
+      };
+
+      const onKeyDown = (e) => {
+        if (["ArrowLeft", "ArrowRight", "KeyA", "KeyD"].includes(e.code))
+          e.preventDefault();
+        keys.add(e.code);
+      };
+      const onKeyUp = (e) => keys.delete(e.code);
 
       const loop = () => {
-        if (keys.has("ArrowLeft") || keys.has("KeyA")) paddleX -= 6;
-        if (keys.has("ArrowRight") || keys.has("KeyD")) paddleX += 6;
+        if (stopped) return;
+        if (keys.has("ArrowLeft") || keys.has("KeyA")) paddleX -= 4.8;
+        if (keys.has("ArrowRight") || keys.has("KeyD")) paddleX += 4.8;
         paddleX = Math.max(0, Math.min(W - paddleW, paddleX));
 
         ball.x += ball.vx;
@@ -349,39 +581,66 @@ export function createInteractionSystem(
         if (ball.x - ball.r <= 0 || ball.x + ball.r >= W) ball.vx *= -1;
         if (ball.y - ball.r <= 0) ball.vy *= -1;
 
-        if (ball.y + ball.r >= paddleY && ball.x >= paddleX && ball.x <= paddleX + paddleW && ball.vy > 0) {
+        if (
+          ball.y + ball.r >= paddleY &&
+          ball.x >= paddleX &&
+          ball.x <= paddleX + paddleW &&
+          ball.vy > 0
+        ) {
           ball.vy *= -1;
           score += 1;
-          if (score % 3 === 0) {
+          const offset = (ball.x - (paddleX + paddleW / 2)) / (paddleW / 2);
+          ball.vx = 2.6 * offset;
+          if (score % 4 === 0) {
             ball.vx *= 1.08;
             ball.vy *= 1.08;
           }
         }
 
         if (ball.y - ball.r > H) {
-          finish("lose");
-          return;
+          lives -= 1;
+          if (lives <= 0) {
+            done("lose", score);
+            return;
+          }
+          resetBall();
         }
 
-        clear();
+        drawBackground();
         ctx.fillStyle = "#ffffff";
         ctx.beginPath();
         ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = "#d1a8ff";
         ctx.fillRect(paddleX, paddleY, paddleW, 10);
-        infoEl.textContent = `Отбито: ${score}. A/D или стрелки — ракетка.`;
+        updateHud(score, lives, "A/D или стрелки — двигать платформу");
         animationId = requestAnimationFrame(loop);
       };
+
+      window.addEventListener("keydown", onKeyDown, { passive: false });
+      window.addEventListener("keyup", onKeyUp);
       animationId = requestAnimationFrame(loop);
+
+      return () => {
+        if (stopped) return;
+        stopped = true;
+        cancelAnimationFrame(animationId);
+        window.removeEventListener("keydown", onKeyDown);
+        window.removeEventListener("keyup", onKeyUp);
+      };
     }
 
-    clear();
-    drawText("Загрузка...", H / 2);
+    menuEl.querySelectorAll("[data-game]").forEach((btn) => {
+      btn.addEventListener("click", onGameCardClick);
+    });
+    closeBtn.addEventListener("click", closeComputer);
+    startBtn?.addEventListener("click", startSelectedGame);
+    backBtn?.addEventListener("click", showMenu);
+    retryBtn?.addEventListener("click", startSelectedGame);
+    toMenuBtn?.addEventListener("click", showMenu);
 
-    if (gameType === "snake") startSnake();
-    else if (gameType === "catch") startCatch();
-    else startPong();
+    miniGameCleanup = closeComputer;
+    showMenu();
   }
 
   function openStudyDeskChoice() {
@@ -391,13 +650,8 @@ export function createInteractionSystem(
         return;
       }
 
-      if (choice.gameType) {
-        showMiniGame(choice.gameType, {
-          onComplete: (result) => {
-            applyComputerGameEffects(choice.gameType, result);
-            dialogueManager.startScene("afterComputerGame");
-          },
-        });
+      if (choice.action === "computer") {
+        openComputerMenu();
       }
     };
 
@@ -410,9 +664,7 @@ export function createInteractionSystem(
       ],
       choices: [
         { text: "Готовиться к экзамену", action: "study" },
-        { text: "Поиграть в змейку", gameType: "snake" },
-        { text: "Ловить мячики в корзинку", gameType: "catch" },
-        { text: "Отбивать мячик", gameType: "pong" },
+        { text: "Поиграть", action: "computer" },
       ],
     });
   }
@@ -598,6 +850,11 @@ export function createInteractionSystem(
 
   function handleItem(item) {
     const id = item.itemData?.itemId;
+
+    if (!state.hasFlag("met_Semyon")) {
+      dialogueManager.startScene("needTalkToSemyonBeforeExit");
+      return;
+    }
 
     if (!id) return;
 

@@ -24,16 +24,59 @@
   </div>
 
   <div id="miniGameOverlay" aria-hidden="true">
-    <div class="mini-game-window">
-      <div class="mini-game-header">
-        <div id="miniGameTitle">Мини-игра</div>
-        <button id="miniGameClose" type="button">×</button>
+    <div class="computer-window">
+      <div class="computer-titlebar">
+        <div>
+          <div id="computerTitle" class="computer-title">Компьютер</div>
+          <div id="computerSubtitle" class="computer-subtitle">Выберите игру</div>
+        </div>
+        <button id="miniGameClose" class="computer-close" type="button">×</button>
       </div>
-      <canvas id="miniGameCanvas" width="420" height="300"></canvas>
-      <div id="miniGameInfo">WASD / стрелки — управление</div>
+
+      <div id="computerMenu" class="computer-screen">
+        <button class="computer-game-card" type="button" data-game="snake">
+          <span>Змейка</span>
+          <small>Собирай еду и не врезайся</small>
+        </button>
+        <button class="computer-game-card" type="button" data-game="catch">
+          <span>Ловля мячиков</span>
+          <small>Двигай корзинку и лови мячики</small>
+        </button>
+        <button class="computer-game-card" type="button" data-game="pong">
+          <span>Отбей мяч</span>
+          <small>Не дай мячу упасть вниз</small>
+        </button>
+      </div>
+
+      <div id="computerGameIntro" class="computer-screen" hidden>
+        <div class="computer-game-intro-card">
+          <div id="miniGameTitle" class="mini-game-title">Мини-игра</div>
+          <div id="miniGameBest" class="mini-game-best">Лучший счёт: 0</div>
+          <button id="miniGameStart" class="computer-main-btn" type="button">Начать</button>
+          <button id="miniGameBack" class="computer-secondary-btn" type="button">Назад к играм</button>
+        </div>
+      </div>
+
+      <div id="computerGamePlay" class="computer-screen" hidden>
+        <div class="mini-game-hud">
+          <div id="miniGameScore">Очки: 0</div>
+          <div id="miniGameLives" class="mini-game-lives" aria-label="Жизни"></div>
+        </div>
+        <canvas id="miniGameCanvas" width="420" height="300"></canvas>
+        <div id="miniGameInfo" class="mini-game-info">WASD / стрелки — управление</div>
+      </div>
+
+      <div id="computerGameOver" class="computer-screen" hidden>
+        <div class="computer-game-over-card">
+          <div id="miniGameResultTitle" class="mini-game-title">Игра окончена</div>
+          <div id="miniGameResultText" class="mini-game-best">Счёт: 0</div>
+          <button id="miniGameRetry" class="computer-main-btn" type="button">Играть снова</button>
+          <button id="miniGameToMenu" class="computer-secondary-btn" type="button">Выбрать другую игру</button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <script type="module" src="main.js"></script>
+  <script type="module"  <script type="module" src="main.js"></script>
 </body>
 </html>
