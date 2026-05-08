@@ -15,36 +15,40 @@ export function createStorySystem(scene, { state, dialogueManager } = {}) {
   }
 
   function applyEffects(effects = []) {
-    if (!Array.isArray(effects)) return;
+    let normalizedEffects = effects;
 
-    for (const effect of effects) {
+    if (effects && !Array.isArray(effects) && typeof effects === "object") {
+      normalizedEffects = Object.entries(effects).map(([id, delta]) => ({
+        type: "incCounter",
+        id,
+        delta,
+      }));
+    }
+
+    if (!Array.isArray(normalizedEffects)) return;
+
+    for (const effect of normalizedEffects) {
       if (!effect || !effect.type) continue;
 
       switch (effect.type) {
         case "setFlag":
           state?.setFlag(effect.id);
           break;
-
         case "removeFlag":
           state?.removeFlag(effect.id);
           break;
-
         case "setValue":
           state?.setValue(effect.id, effect.value);
           break;
-
         case "removeValue":
           state?.removeValue(effect.id);
           break;
-
         case "incCounter":
           state?.incCounter(effect.id, effect.delta ?? 1);
           break;
-
         case "setCounter":
           state?.setCounter(effect.id, effect.value ?? 0);
           break;
-
         default:
           console.warn(`[storySystem] Неизвестный effect.type: ${effect.type}`);
       }
@@ -56,20 +60,28 @@ export function createStorySystem(scene, { state, dialogueManager } = {}) {
     const A = state?.getCounter("anxiety") ?? 0;
     const F = state?.getCounter("fatigue") ?? 0;
     const S = state?.getCounter("social") ?? 0;
+    const L = state?.getCounter("luck") ?? 0;
 
-    const effectivePrep = P + Math.floor(S / 2);
+    const effectivePrep = P + Math.floor(S / 2) + Math.floor(L / 2);
+    const score = effectivePrep * 2 + S - A - F;
 
+    let grade = 3;
     let endingScene = "endingNormal";
 
-    if (effectivePrep >= 3 && A <= 0 && F <= 2) {
+    if (score >= 6 && effectivePrep >= 3 && A <= 2) {
+      grade = 5;
       endingScene = "endingPerfect";
-    } else if (effectivePrep >= 2 && A <= 1 && F <= 3) {
+    } else if (score >= 3 && effectivePrep >= 2) {
+      grade = 4;
       endingScene = "endingGood";
-    } else if (effectivePrep >= 1 && A <= 3 && F <= 4) {
+    } else if (score >= -1 && effectivePrep >= 1) {
+      grade = 3;
       endingScene = "endingNormal";
-    } else if (effectivePrep >= 1 && A <= 5) {
-      endingScene = "endingEdge";
+    } else if (score <= -7 && effectivePrep <= 0) {
+      grade = 1;
+      endingScene = "endingDisaster";
     } else {
+      grade = 2;
       endingScene = "endingFail";
     }
 
@@ -78,12 +90,16 @@ export function createStorySystem(scene, { state, dialogueManager } = {}) {
       anxiety: A,
       fatigue: F,
       social: S,
+      luck: L,
       effectivePrep,
+      score,
+      grade,
       endingScene,
     };
 
     state?.setValue("lastExamStats", result);
     state?.setValue("lastExamEnding", endingScene);
+    state?.setValue("lastExamGrade", grade);
 
     return result;
   }

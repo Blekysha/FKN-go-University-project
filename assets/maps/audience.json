@@ -302,7 +302,7 @@
                         {
                          "name":"offsetX",
                          "type":"string",
-                         "value":"-7"
+                         "value":"0"
                         }, 
                         {
                          "name":"offsetY",
@@ -322,9 +322,9 @@
                  "rotation":0.846792,
                  "type":"",
                  "visible":true,
-                 "width":25.0006,
-                 "x":141.306518181818,
-                 "y":85.8769363636364
+                 "width":30.5360442432147,
+                 "x":135.771678475494,
+                 "y":85.7951293038287
                 }],
          "opacity":1,
          "type":"objectgroup",

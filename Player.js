@@ -1,16 +1,5 @@
 /*
   Player.js
-
-  Модуль игрока.
-
-  Отвечает за:
-  - создание спрайта игрока
-  - настройку хитбокса
-  - обновление движения на основе клавиш
-  - настройку границ мира
-
-  Ограничения движения теперь задаются только
-  границами мира и коллизиями из Tiled.
 */
 
 export function createPlayer(scene, x, y) {
@@ -33,24 +22,22 @@ export function createPlayer(scene, x, y) {
       sprite.setCollideWorldBounds(true);
     },
 
-    updateMovement(cursors, { blocked = false } = {}) {
+    updateMovement(controls, { blocked = false } = {}) {
       const speed = 80;
 
       sprite.setVelocity(0);
-
       if (blocked) return;
 
-      if (cursors.left.isDown) {
-        sprite.setVelocityX(-speed);
-      } else if (cursors.right.isDown) {
-        sprite.setVelocityX(speed);
-      }
+      const left = controls.left?.isDown || controls.A?.isDown;
+      const right = controls.right?.isDown || controls.D?.isDown;
+      const up = controls.up?.isDown || controls.W?.isDown;
+      const down = controls.down?.isDown || controls.S?.isDown;
 
-      if (cursors.up.isDown) {
-        sprite.setVelocityY(-speed);
-      } else if (cursors.down.isDown) {
-        sprite.setVelocityY(speed);
-      }
+      if (left) sprite.setVelocityX(-speed);
+      else if (right) sprite.setVelocityX(speed);
+
+      if (up) sprite.setVelocityY(-speed);
+      else if (down) sprite.setVelocityY(speed);
     },
   };
 

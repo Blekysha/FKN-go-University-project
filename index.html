@@ -23,6 +23,17 @@
     <div id="blackScreenHint">Space / Enter — дальше</div>
   </div>
 
+  <div id="miniGameOverlay" aria-hidden="true">
+    <div class="mini-game-window">
+      <div class="mini-game-header">
+        <div id="miniGameTitle">Мини-игра</div>
+        <button id="miniGameClose" type="button">×</button>
+      </div>
+      <canvas id="miniGameCanvas" width="420" height="300"></canvas>
+      <div id="miniGameInfo">WASD / стрелки — управление</div>
+    </div>
+  </div>
+
   <script type="module" src="main.js"></script>
 </body>
 </html>

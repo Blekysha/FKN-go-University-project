@@ -15,6 +15,11 @@ export function createDialogueManager(scene, { inventory, state, story } = {}) {
       return;
     }
 
+    if (typeof sceneData.useScene === "string") {
+      startScene(sceneData.useScene, options);
+      return;
+    }
+
     if (sceneId === "debugExamStats") {
       const stats = state?.getValue("lastExamStats") ?? {};
       sceneData = {
@@ -25,6 +30,8 @@ export function createDialogueManager(scene, { inventory, state, story } = {}) {
           `Fatigue: ${stats.fatigue ?? 0}`,
           `Social: ${stats.social ?? 0}`,
           `EffectivePrep: ${stats.effectivePrep ?? 0}`,
+          `Score: ${stats.score ?? 0}`,
+          `Grade: ${stats.grade ?? "unknown"}`,
           `Ending: ${stats.endingScene ?? "unknown"}`,
         ],
       };

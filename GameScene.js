@@ -50,7 +50,13 @@ function create() {
   this.player = createPlayer(this, 48, 90);
   this.player.sprite.setCollideWorldBounds(true);
 
-  this.cursors = this.input.keyboard.createCursorKeys();
+  this.controls = {
+    ...this.input.keyboard.createCursorKeys(),
+    W: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+    A: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+    S: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
+    D: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
+  };
   this.keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
 
   this.hintE = createInteractionHint(this);
@@ -94,7 +100,7 @@ function create() {
 function update() {
   const blocked = dialogueUI.isOpen();
 
-  this.player.updateMovement(this.cursors, { blocked });
+  this.player.updateMovement(this.controls, { blocked: blocked || this.interaction?.isBusy?.() });
 
   if (blocked) {
     this.hintE.hide();

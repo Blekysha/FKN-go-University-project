@@ -17,13 +17,21 @@ export function createInteractionSystem(
   let currentDoor = null;
   let currentNpc = null;
   let blackScreenActive = false;
+  let miniGameActive = false;
+  let miniGameCleanup = null;
 
-  function showBlackScreen(text, { onComplete = null } = {}) {
+  function showBlackScreen(
+    text,
+    { onComplete = null, minSkipDelayMs = 1200, lineDelayMs = 900 } = {}
+  ) {
     const root = document.getElementById("blackScreen");
     const textEl = document.getElementById("blackScreenText");
+    const hintEl = document.getElementById("blackScreenHint");
 
     if (!root || !textEl) {
-      console.warn("[interactionSystem] Не найден #blackScreen или #blackScreenText.");
+      console.warn(
+        "[interactionSystem] Не найден #blackScreen или #blackScreenText."
+      );
       onComplete?.();
       return;
     }
@@ -35,17 +43,43 @@ export function createInteractionSystem(
       playerSprite.body.enable = false;
     }
 
-    textEl.textContent = text;
+    const lines = Array.isArray(text)
+      ? text.map(String)
+      : String(text).split("\n");
+    const shownLines = [];
+    let index = 0;
+    let canClose = false;
+    let closed = false;
+    let timers = [];
+
+    textEl.textContent = "";
+    if (hintEl) {
+      hintEl.textContent = "...";
+      hintEl.style.opacity = "0.25";
+    }
+
     root.style.display = "flex";
     root.setAttribute("aria-hidden", "false");
 
+    const cleanupTimers = () => {
+      timers.forEach((timerId) => window.clearTimeout(timerId));
+      timers = [];
+    };
+
     const close = () => {
+      if (!canClose || closed) return;
+      closed = true;
+      cleanupTimers();
       window.removeEventListener("keydown", onKeyDown);
       root.removeEventListener("click", close);
 
       root.style.display = "none";
       root.setAttribute("aria-hidden", "true");
       textEl.textContent = "";
+      if (hintEl) {
+        hintEl.textContent = "Space / Enter — дальше";
+        hintEl.style.opacity = "0.65";
+      }
 
       playerSprite.setVisible(true);
       if (playerSprite.body) {
@@ -54,6 +88,28 @@ export function createInteractionSystem(
 
       blackScreenActive = false;
       onComplete?.();
+    };
+
+    const revealNextLine = () => {
+      if (closed) return;
+
+      if (index < lines.length) {
+        shownLines.push(lines[index]);
+        textEl.textContent = shownLines.join("\n");
+        index += 1;
+        timers.push(window.setTimeout(revealNextLine, lineDelayMs));
+        return;
+      }
+
+      timers.push(
+        window.setTimeout(() => {
+          canClose = true;
+          if (hintEl) {
+            hintEl.textContent = "Space / Enter — дальше";
+            hintEl.style.opacity = "0.65";
+          }
+        }, minSkipDelayMs)
+      );
     };
 
     const onKeyDown = (e) => {
@@ -65,6 +121,300 @@ export function createInteractionSystem(
 
     window.addEventListener("keydown", onKeyDown, { passive: false });
     root.addEventListener("click", close);
+    timers.push(window.setTimeout(revealNextLine, 250));
+  }
+
+
+
+  function applyComputerGameEffects(gameType, result = {}) {
+    state?.setFlag("played_computer_game");
+    state?.setValue("playedComputerGameType", gameType);
+    state?.setValue("lastComputerGameResult", result);
+
+    // Общий смысл: Вася отдохнул эмоционально, но потерял время и устал.
+    state?.incCounter("anxiety", -1);
+    state?.incCounter("fatigue", 2);
+
+    if (gameType === "snake") {
+      state?.incCounter("social", 1);
+    } else if (gameType === "catch") {
+      state?.incCounter("luck", 1);
+    } else if (gameType === "pong") {
+      state?.incCounter("anxiety", -1);
+      state?.incCounter("fatigue", 1);
+    }
+  }
+
+  function showMiniGame(gameType, { onComplete = null } = {}) {
+    const root = document.getElementById("miniGameOverlay");
+    const canvas = document.getElementById("miniGameCanvas");
+    const titleEl = document.getElementById("miniGameTitle");
+    const infoEl = document.getElementById("miniGameInfo");
+    const closeBtn = document.getElementById("miniGameClose");
+
+    if (!root || !canvas || !closeBtn) {
+      console.warn("[interactionSystem] Не найдены DOM-элементы мини-игры.");
+      onComplete?.({ closed: true, score: 0 });
+      return;
+    }
+
+    if (miniGameCleanup) miniGameCleanup();
+
+    const ctx = canvas.getContext("2d");
+    const W = canvas.width;
+    const H = canvas.height;
+    let animationId = null;
+    let intervalId = null;
+    let closed = false;
+    let score = 0;
+    const keys = new Set();
+
+    miniGameActive = true;
+    playerSprite.setVelocity(0);
+    playerSprite.setVisible(false);
+    if (playerSprite.body) playerSprite.body.enable = false;
+
+    root.style.display = "flex";
+    root.setAttribute("aria-hidden", "false");
+
+    const titles = {
+      snake: "Змейка",
+      catch: "Ловля мячиков",
+      pong: "Отбей мяч",
+    };
+
+    titleEl.textContent = titles[gameType] ?? "Мини-игра";
+    infoEl.textContent = "WASD / стрелки — управление. Крестик — выйти.";
+
+    const clear = () => {
+      ctx.fillStyle = "#050505";
+      ctx.fillRect(0, 0, W, H);
+    };
+
+    const drawText = (text, y = H / 2) => {
+      ctx.fillStyle = "#ffffffe2";
+      ctx.font = "18px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(text, W / 2, y);
+    };
+
+    const finish = (reason = "end") => {
+      if (closed) return;
+      closed = true;
+      if (animationId) cancelAnimationFrame(animationId);
+      if (intervalId) window.clearInterval(intervalId);
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+      closeBtn.removeEventListener("click", closeByButton);
+
+      root.style.display = "none";
+      root.setAttribute("aria-hidden", "true");
+
+      playerSprite.setVisible(true);
+      if (playerSprite.body) playerSprite.body.enable = true;
+
+      miniGameActive = false;
+      miniGameCleanup = null;
+      onComplete?.({ reason, score });
+    };
+
+    miniGameCleanup = () => finish("cleanup");
+
+    const closeByButton = () => finish("closed");
+
+    const onKeyDown = (e) => {
+      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "KeyW", "KeyA", "KeyS", "KeyD", "Space"].includes(e.code)) {
+        e.preventDefault();
+      }
+      keys.add(e.code);
+    };
+
+    const onKeyUp = (e) => keys.delete(e.code);
+
+    window.addEventListener("keydown", onKeyDown, { passive: false });
+    window.addEventListener("keyup", onKeyUp);
+    closeBtn.addEventListener("click", closeByButton);
+
+    function startSnake() {
+      const cell = 15;
+      const cols = Math.floor(W / cell);
+      const rows = Math.floor(H / cell);
+      let snake = [{ x: 8, y: 8 }];
+      let dir = { x: 1, y: 0 };
+      let nextDir = { x: 1, y: 0 };
+      let food = { x: 14, y: 9 };
+
+      const placeFood = () => {
+        food = {
+          x: Math.floor(Math.random() * cols),
+          y: Math.floor(Math.random() * rows),
+        };
+      };
+
+      intervalId = window.setInterval(() => {
+        if ((keys.has("ArrowLeft") || keys.has("KeyA")) && dir.x !== 1) nextDir = { x: -1, y: 0 };
+        if ((keys.has("ArrowRight") || keys.has("KeyD")) && dir.x !== -1) nextDir = { x: 1, y: 0 };
+        if ((keys.has("ArrowUp") || keys.has("KeyW")) && dir.y !== 1) nextDir = { x: 0, y: -1 };
+        if ((keys.has("ArrowDown") || keys.has("KeyS")) && dir.y !== -1) nextDir = { x: 0, y: 1 };
+        dir = nextDir;
+
+        const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+        const hitWall = head.x < 0 || head.y < 0 || head.x >= cols || head.y >= rows;
+        const hitSelf = snake.some((part) => part.x === head.x && part.y === head.y);
+        if (hitWall || hitSelf) {
+          finish("lose");
+          return;
+        }
+
+        snake.unshift(head);
+        if (head.x === food.x && head.y === food.y) {
+          score += 1;
+          placeFood();
+        } else {
+          snake.pop();
+        }
+
+        clear();
+        ctx.fillStyle = "#dddddd";
+        ctx.fillRect(food.x * cell, food.y * cell, cell - 2, cell - 2);
+        ctx.fillStyle = "#8fd18f";
+        snake.forEach((part) => ctx.fillRect(part.x * cell, part.y * cell, cell - 2, cell - 2));
+        infoEl.textContent = `Очки: ${score}. WASD / стрелки — управление. Крестик — выйти.`;
+      }, 120);
+    }
+
+    function startCatch() {
+      let basketX = W / 2 - 35;
+      const basketW = 70;
+      const basketY = H - 28;
+      let lives = 3;
+      const balls = [];
+      let lastSpawn = 0;
+
+      const loop = (time) => {
+        if (keys.has("ArrowLeft") || keys.has("KeyA")) basketX -= 5;
+        if (keys.has("ArrowRight") || keys.has("KeyD")) basketX += 5;
+        basketX = Math.max(0, Math.min(W - basketW, basketX));
+
+        if (time - lastSpawn > 650) {
+          balls.push({ x: 15 + Math.random() * (W - 30), y: -10, r: 8, vy: 2.4 + Math.random() * 1.5 });
+          lastSpawn = time;
+        }
+
+        for (let i = balls.length - 1; i >= 0; i--) {
+          const b = balls[i];
+          b.y += b.vy;
+          if (b.y + b.r >= basketY && b.x >= basketX && b.x <= basketX + basketW) {
+            score += 1;
+            balls.splice(i, 1);
+          } else if (b.y - b.r > H) {
+            lives -= 1;
+            balls.splice(i, 1);
+            if (lives <= 0) {
+              finish("lose");
+              return;
+            }
+          }
+        }
+
+        clear();
+        ctx.fillStyle = "#cfcfcf";
+        balls.forEach((b) => {
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.fillStyle = "#8fd1ff";
+        ctx.fillRect(basketX, basketY, basketW, 12);
+        infoEl.textContent = `Поймано: ${score}. Жизни: ${lives}. A/D или стрелки — корзинка.`;
+        animationId = requestAnimationFrame(loop);
+      };
+      animationId = requestAnimationFrame(loop);
+    }
+
+    function startPong() {
+      let paddleX = W / 2 - 45;
+      const paddleW = 90;
+      const paddleY = H - 24;
+      let ball = { x: W / 2, y: H / 2, vx: 3, vy: -3, r: 7 };
+
+      const loop = () => {
+        if (keys.has("ArrowLeft") || keys.has("KeyA")) paddleX -= 6;
+        if (keys.has("ArrowRight") || keys.has("KeyD")) paddleX += 6;
+        paddleX = Math.max(0, Math.min(W - paddleW, paddleX));
+
+        ball.x += ball.vx;
+        ball.y += ball.vy;
+
+        if (ball.x - ball.r <= 0 || ball.x + ball.r >= W) ball.vx *= -1;
+        if (ball.y - ball.r <= 0) ball.vy *= -1;
+
+        if (ball.y + ball.r >= paddleY && ball.x >= paddleX && ball.x <= paddleX + paddleW && ball.vy > 0) {
+          ball.vy *= -1;
+          score += 1;
+          if (score % 3 === 0) {
+            ball.vx *= 1.08;
+            ball.vy *= 1.08;
+          }
+        }
+
+        if (ball.y - ball.r > H) {
+          finish("lose");
+          return;
+        }
+
+        clear();
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#d1a8ff";
+        ctx.fillRect(paddleX, paddleY, paddleW, 10);
+        infoEl.textContent = `Отбито: ${score}. A/D или стрелки — ракетка.`;
+        animationId = requestAnimationFrame(loop);
+      };
+      animationId = requestAnimationFrame(loop);
+    }
+
+    clear();
+    drawText("Загрузка...", H / 2);
+
+    if (gameType === "snake") startSnake();
+    else if (gameType === "catch") startCatch();
+    else startPong();
+  }
+
+  function openStudyDeskChoice() {
+    dialogueUI.onChoice = (choice) => {
+      if (choice.action === "study") {
+        dialogueManager.startScene("studySession");
+        return;
+      }
+
+      if (choice.gameType) {
+        showMiniGame(choice.gameType, {
+          onComplete: (result) => {
+            applyComputerGameEffects(choice.gameType, result);
+            dialogueManager.startScene("afterComputerGame");
+          },
+        });
+      }
+    };
+
+    dialogueUI.show({
+      speaker: "Васька",
+      lines: [
+        "Так... стол, конспекты и компьютер.",
+        "Можно заняться подготовкой.",
+        "А можно чуть-чуть отвлечься.",
+      ],
+      choices: [
+        { text: "Готовиться к экзамену", action: "study" },
+        { text: "Поиграть в змейку", gameType: "snake" },
+        { text: "Ловить мячики в корзинку", gameType: "catch" },
+        { text: "Отбивать мячик", gameType: "pong" },
+      ],
+    });
   }
 
   function findItem() {
@@ -165,12 +515,18 @@ export function createInteractionSystem(
 
   function handleDoor(d) {
     const doorId = d?.doorId ?? null;
+    const currentMapKey = levelManager.getCurrentMapKey?.() ?? null;
+
+    if (currentMapKey === "audience" && !state.hasFlag("exam_finished")) {
+      dialogueManager.startScene("cannotLeaveAudienceYet");
+      return;
+    }
 
     if (doorId === "toiletDoor") {
       useToilet();
       return;
     }
- 
+
     if (!state.hasFlag("met_Semyon")) {
       dialogueManager.startScene("needTalkToSemyonBeforeExit");
       return;
@@ -246,6 +602,11 @@ export function createInteractionSystem(
     if (!id) return;
 
     if (id === "studyDesk") {
+      if (state.hasFlag("played_computer_game")) {
+        dialogueManager.startScene("studyDeskAfterComputerGame");
+        return;
+      }
+
       if (state.hasFlag("studied_exam")) {
         dialogueUI.show({
           speaker: "Васька",
@@ -254,22 +615,18 @@ export function createInteractionSystem(
         return;
       }
 
-      const goal = state.getValue("currentGoal");
-      if (goal !== "study") {
-        dialogueUI.show({
-          speaker: "Васька",
-          lines: ["Сейчас мне нужно заняться другим."],
-        });
-        return;
-      }
-
-      dialogueManager.startScene("studySession");
+      openStudyDeskChoice();
       return;
     }
 
     if (id === "windowRest") {
       if (state.hasFlag("visited_window")) {
         dialogueManager.startScene("windowAlreadyUsed");
+        return;
+      }
+
+      if (state.hasFlag("heard_sveta_no_sitting_advice")) {
+        dialogueManager.startScene("windowRestWithSvetaAdvice");
         return;
       }
 
@@ -288,15 +645,24 @@ export function createInteractionSystem(
         return;
       }
 
-      showBlackScreen(
-        "Васька садится за парту.\nПеред ним билет, черновик и несколько минут на подготовку.\nМысли путаются, но постепенно ответ складывается в голове.",
-        {
-          onComplete: () => {
-            state.setFlag("exam_prepared_answer");
-            dialogueManager.startScene("examAnswerPrepared");
-          },
-        }
-      );
+      const deskLines = [
+        ...(state.hasFlag("skipped_window_because_sveta")
+          ? [
+              "Ну и для чего я тогда не садился...",
+              "Всё равно пришлось сесть за парту.",
+            ]
+          : []),
+        "Васька садится за парту.",
+        "Перед ним билет, черновик и несколько минут на подготовку.",
+        "Мысли путаются, но постепенно ответ складывается в голове.",
+      ];
+
+      showBlackScreen(deskLines, {
+        onComplete: () => {
+          state.setFlag("exam_prepared_answer");
+          dialogueManager.startScene("examAnswerPrepared");
+        },
+      });
       return;
     }
 
@@ -348,10 +714,24 @@ export function createInteractionSystem(
 
           dialogueManager.startScene(result.endingScene, {
             onComplete: () => {
+              const grade = result.grade ?? "?";
+              const resultLine =
+                grade === 1
+                  ? "Скрытый провал: знания Васьки приводят преподавателя в ужас."
+                  : `Итоговая оценка: ${grade}.`;
+
               showBlackScreen(
-                "Экзамен закончен.\nВаська выходит из аудитории и наконец выдыхает.\nДальше здесь появятся финальные выводы по пройденному пути.",
+                [
+                  "Экзамен закончен.",
+                  resultLine,
+                  "Васька выходит из аудитории и наконец выдыхает.",
+                  "Дальше здесь появятся финальные выводы по пройденному пути.",
+                ],
                 {
-                  onComplete: () => dialogueManager.startScene("finalExamSummary"),
+                  onComplete: () =>
+                    dialogueManager.startScene("finalExamSummary"),
+                  minSkipDelayMs: 1800,
+                  lineDelayMs: 1000,
                 }
               );
             },
@@ -369,7 +749,7 @@ export function createInteractionSystem(
   function handleInteract() {
     if (!Phaser.Input.Keyboard.JustDown(keyE)) return;
 
-    if (dialogueUI.isOpen()) return;
+    if (dialogueUI.isOpen() || blackScreenActive || miniGameActive) return;
 
     if (currentItem) {
       handleItem(currentItem);
@@ -397,7 +777,7 @@ export function createInteractionSystem(
   }
 
   function update() {
-    if (blackScreenActive) {
+    if (blackScreenActive || miniGameActive) {
       hint.hide();
       return;
     }
@@ -412,5 +792,8 @@ export function createInteractionSystem(
 
   return {
     update,
+    isBusy() {
+      return blackScreenActive || miniGameActive;
+    },
   };
 }
