@@ -360,3 +360,333 @@ canvas {
   text-align: center;
   white-space: pre-wrap;
 }
+
+
+/* ===== Улучшенный интерфейс компьютера ===== */
+
+.computer-window {
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255,255,255,0.08), transparent 32%),
+    linear-gradient(180deg, #1c1c1f, #08080a);
+}
+
+#computerGameIntro,
+#computerGameOver,
+#computerGamePause {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#computerGameIntro[hidden],
+#computerGameOver[hidden],
+#computerGamePause[hidden] {
+  display: none !important;
+}
+
+.computer-game-intro-card,
+.computer-game-over-card {
+  width: min(100%, 420px);
+  padding: 26px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+  text-align: center;
+}
+
+.mini-game-title {
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+
+.mini-game-best {
+  font-size: 16px;
+  opacity: 0.78;
+  margin-bottom: 20px;
+  line-height: 1.35;
+}
+
+.mini-game-hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.13);
+}
+
+#miniGameScore {
+  font-size: 18px;
+}
+
+.mini-game-lives {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  min-height: 20px;
+}
+
+.life-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  display: inline-block;
+  background: rgba(255,255,255,0.88);
+  box-shadow: 0 0 8px rgba(255,255,255,0.22);
+}
+
+.life-dot.empty {
+  background: rgba(255,255,255,0.14);
+  box-shadow: none;
+  border: 1px solid rgba(255,255,255,0.25);
+}
+
+#miniGameCanvas {
+  width: 100%;
+  max-width: 420px;
+  display: block;
+  margin: 0 auto;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: #050505;
+  image-rendering: pixelated;
+}
+
+.mini-game-info {
+  margin-top: 10px;
+  text-align: center;
+  opacity: 0.72;
+  font-size: 14px;
+}
+
+.mini-game-back-btn {
+  display: block;
+  width: min(100%, 220px);
+  margin: 12px auto 0;
+}
+
+.computer-main-btn,
+.computer-secondary-btn {
+  margin-top: 10px;
+}
+
+
+
+/* ===== Правки меню мини-игр ===== */
+
+#computerGamePlay {
+  position: relative;
+}
+
+.mini-game-menu-btn {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  width: 38px;
+  height: 34px;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 10px;
+  background: rgba(0,0,0,0.38);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 9px;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.mini-game-menu-btn span {
+  display: block;
+  height: 2px;
+  border-radius: 99px;
+  background: rgba(255,255,255,0.86);
+}
+
+.mini-game-menu-btn:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.48);
+}
+
+#computerGamePlay .mini-game-hud {
+  padding-left: 56px;
+}
+
+#computerGameIntro .computer-game-intro-card {
+  margin-top: 14px;
+}
+
+#computerGameIntro .computer-secondary-btn {
+  opacity: 0.8;
+}
+
+
+
+/* ===== Скрытие верхней панели при выбранной игре ===== */
+
+#miniGameOverlay.is-focused-game .computer-titlebar {
+  display: none;
+}
+
+#miniGameOverlay.is-focused-game .computer-window {
+  padding-top: 16px;
+}
+
+#miniGameOverlay.is-playing .computer-window {
+  width: min(94vw, 560px);
+  min-height: auto;
+}
+
+#miniGameOverlay.is-playing .computer-screen {
+  min-height: auto;
+}
+
+#miniGameOverlay.is-playing #computerGamePlay {
+  padding-top: 0;
+}
+
+#miniGameOverlay.is-playing #miniGameCanvas {
+  margin-top: 0;
+}
+
+
+
+/* ===== Жёсткое скрытие экранов компьютера ===== */
+/* Важно: #computerMenu имеет display:grid, поэтому обычный hidden мог перебиваться. */
+
+#miniGameOverlay #computerMenu[hidden],
+#miniGameOverlay #computerGameIntro[hidden],
+#miniGameOverlay #computerGamePlay[hidden],
+#miniGameOverlay #computerGamePause[hidden],
+#miniGameOverlay #computerGameOver[hidden] {
+  display: none !important;
+}
+
+#miniGameOverlay.is-focused-game #computerMenu {
+  display: none !important;
+}
+
+#miniGameOverlay.is-focused-game .computer-titlebar {
+  display: none !important;
+}
+
+#miniGameOverlay.is-playing .computer-window {
+  width: min(94vw, 560px);
+  min-height: auto;
+}
+
+#miniGameOverlay.is-playing .computer-screen {
+  min-height: auto;
+}
+
+
+
+/* ===== Стартовое меню ===== */
+#startMenu {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255,255,255,0.08), transparent 34%),
+    rgba(0, 0, 0, 0.86);
+  color: #ffffffe2;
+  font-family: "shrift", monospace;
+}
+
+.start-menu-panel {
+  width: min(92vw, 560px);
+  padding: 30px 28px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(28,28,28,0.96), rgba(8,8,8,0.96));
+  border: 2px solid rgba(255,255,255,0.55);
+  box-shadow: 0 18px 50px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(255,255,255,0.06);
+  text-align: center;
+}
+
+.start-menu-title {
+  font-size: 42px;
+  line-height: 1;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.start-menu-subtitle {
+  font-size: 18px;
+  line-height: 1.35;
+  opacity: 0.76;
+  margin-bottom: 24px;
+}
+
+.start-menu-btn,
+.story-restart-btn {
+  width: min(100%, 260px);
+  padding: 14px 18px;
+  border: 1px solid rgba(255,255,255,0.34);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.1);
+  color: #ffffffe2;
+  font-family: "shrift", monospace;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.start-menu-btn:hover,
+.story-restart-btn:hover {
+  background: rgba(255,255,255,0.18);
+  border-color: rgba(255,255,255,0.55);
+}
+
+.start-menu-help {
+  margin-top: 18px;
+  text-align: left;
+  font-size: 16px;
+  opacity: 0.82;
+}
+
+.start-menu-help summary {
+  cursor: pointer;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.start-menu-help div {
+  margin: 7px 0;
+}
+
+/* ===== Сюжетный итоговый экран ===== */
+#blackScreen {
+  background: rgba(0, 0, 0, 0.72) !important;
+}
+
+.story-result-panel {
+  width: min(92vw, 720px);
+  min-height: 260px;
+  box-sizing: border-box;
+  padding: 28px 30px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(18,18,18,0.96), rgba(5,5,5,0.96));
+  border: 2px solid rgba(255,255,255,0.5);
+  box-shadow: 0 18px 55px rgba(0,0,0,0.72), inset 0 0 0 1px rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#blackScreenText {
+  max-width: 650px !important;
+  font-size: 24px !important;
+}
+
+.story-restart-btn {
+  margin-top: 24px;
+}

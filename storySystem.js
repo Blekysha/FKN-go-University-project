@@ -14,18 +14,25 @@ export function createStorySystem(scene, { state, dialogueManager } = {}) {
     dm?.startScene("intro");
   }
 
-  function applyEffects(effects = []) {
-    let normalizedEffects = effects;
+  function normalizeEffects(effects = []) {
+    if (!effects) return [];
 
-    if (effects && !Array.isArray(effects) && typeof effects === "object") {
-      normalizedEffects = Object.entries(effects).map(([id, delta]) => ({
+    if (Array.isArray(effects)) return effects;
+
+    // Старый формат из части диалогов: { anxiety: -1, social: +1 }
+    if (typeof effects === "object") {
+      return Object.entries(effects).map(([id, delta]) => ({
         type: "incCounter",
         id,
         delta,
       }));
     }
 
-    if (!Array.isArray(normalizedEffects)) return;
+    return [];
+  }
+
+  function applyEffects(effects = []) {
+    const normalizedEffects = normalizeEffects(effects);
 
     for (const effect of normalizedEffects) {
       if (!effect || !effect.type) continue;
@@ -34,21 +41,27 @@ export function createStorySystem(scene, { state, dialogueManager } = {}) {
         case "setFlag":
           state?.setFlag(effect.id);
           break;
+
         case "removeFlag":
           state?.removeFlag(effect.id);
           break;
+
         case "setValue":
           state?.setValue(effect.id, effect.value);
           break;
+
         case "removeValue":
           state?.removeValue(effect.id);
           break;
+
         case "incCounter":
           state?.incCounter(effect.id, effect.delta ?? 1);
           break;
+
         case "setCounter":
           state?.setCounter(effect.id, effect.value ?? 0);
           break;
+
         default:
           console.warn(`[storySystem] Неизвестный effect.type: ${effect.type}`);
       }
@@ -61,28 +74,55 @@ export function createStorySystem(scene, { state, dialogueManager } = {}) {
     const F = state?.getCounter("fatigue") ?? 0;
     const S = state?.getCounter("social") ?? 0;
     const L = state?.getCounter("luck") ?? 0;
+    const C = state?.getCounter("confidence") ?? 0;
+    const SR = state?.getCounter("sveta_relation") ?? 0;
 
-    const effectivePrep = P + Math.floor(S / 2) + Math.floor(L / 2);
-    const score = effectivePrep * 2 + S - A - F;
+    const heardSveta = state?.hasFlag("heard_sveta_no_sitting_advice") ?? false;
+    const trustedSveta = state?.hasFlag("skipped_window_because_sveta") ?? false;
+    const ignoredSveta = state?.hasFlag("sat_window_after_sveta_advice") ?? false;
+    const playedComputer = state?.hasFlag("played_computer_game") ?? false;
+    const studied = state?.hasFlag("studied_exam") ?? false;
+
+    const svetaBonus = heardSveta ? Math.min(1, Math.max(0, SR)) : 0;
+    const socialBonus = Math.floor(Math.max(0, S) / 2);
+    const effectivePrep = P + socialBonus + Math.max(0, L) + Math.floor(Math.max(0, C) / 2) + svetaBonus;
+    const pressure = A + F;
+
+    let score = effectivePrep * 2 - A - Math.floor(F / 2) + Math.floor(Math.max(0, S) / 2);
+
+    if (trustedSveta) score += 1;
+    if (ignoredSveta) score -= 1;
+    if (playedComputer) score -= 1;
+    if (!studied) score -= 1;
 
     let grade = 3;
     let endingScene = "endingNormal";
+    let endingTone = "normal";
 
-    if (score >= 6 && effectivePrep >= 3 && A <= 2) {
-      grade = 5;
-      endingScene = "endingPerfect";
-    } else if (score >= 3 && effectivePrep >= 2) {
-      grade = 4;
-      endingScene = "endingGood";
-    } else if (score >= -1 && effectivePrep >= 1) {
-      grade = 3;
-      endingScene = "endingNormal";
-    } else if (score <= -7 && effectivePrep <= 0) {
+    if (effectivePrep <= 0 && pressure >= 5) {
       grade = 1;
       endingScene = "endingDisaster";
-    } else {
+      endingTone = "disaster";
+    } else if (score >= 6 && effectivePrep >= 3 && A <= 2) {
+      grade = 5;
+      endingScene = "endingPerfect";
+      endingTone = "excellent";
+    } else if (score >= 2 && effectivePrep >= 2) {
+      grade = 4;
+      endingScene = "endingGood";
+      endingTone = "good";
+    } else if (score >= -2 && effectivePrep >= 1) {
+      grade = 3;
+      endingScene = "endingNormal";
+      endingTone = "pass";
+    } else if (score >= -5) {
       grade = 2;
-      endingScene = "endingFail";
+      endingScene = "endingEdge";
+      endingTone = "fail";
+    } else {
+      grade = 1;
+      endingScene = "endingDisaster";
+      endingTone = "disaster";
     }
 
     const result = {
@@ -91,10 +131,14 @@ export function createStorySystem(scene, { state, dialogueManager } = {}) {
       fatigue: F,
       social: S,
       luck: L,
+      confidence: C,
+      svetaRelation: SR,
       effectivePrep,
+      pressure,
       score,
       grade,
       endingScene,
+      endingTone,
     };
 
     state?.setValue("lastExamStats", result);

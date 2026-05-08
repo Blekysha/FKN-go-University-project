@@ -9,13 +9,13 @@ import { buildColliders, buildDoors, buildItems, buildNpcs } from "./world.js";
 export function createLevelManager(scene, { playerSprite }) {
   const state = {
     map: null,
-    mapKey: null,
     backgroundLayer: null,
     walls: null,
     doors: null,
     items: null,
     npcs: null,
     playerCollider: null,
+    currentMapKey: null,
   };
 
   function destroyCurrentLevel() {
@@ -51,6 +51,7 @@ export function createLevelManager(scene, { playerSprite }) {
     }
 
     state.map = null;
+    state.currentMapKey = null;
   }
 
   function applyBounds(map) {
@@ -106,7 +107,7 @@ export function createLevelManager(scene, { playerSprite }) {
     const built = buildLevel(mapKey);
 
     state.map = built.map;
-    state.mapKey = mapKey;
+    state.currentMapKey = mapKey;
     state.backgroundLayer = built.backgroundLayer;
     state.walls = built.walls;
     state.playerCollider = built.playerCollider;
@@ -121,12 +122,12 @@ export function createLevelManager(scene, { playerSprite }) {
   return {
     load,
 
-    getMap() {
-      return state.map;
+    getCurrentMapKey() {
+      return state.currentMapKey;
     },
 
-    getCurrentMapKey() {
-      return state.mapKey;
+    getMap() {
+      return state.map;
     },
 
     getDoors() {

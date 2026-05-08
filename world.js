@@ -70,8 +70,8 @@ export function buildItems(scene, map, layerName) {
   const layer = map.getObjectLayer(layerName);
   const items = scene.physics.add.staticGroup();
 
-  // На некоторых картах интерактивных предметов нет — это нормальная ситуация.
   if (!layer) {
+    console.warn(`Object Layer '${layerName}' не найден.`);
     return items;
   }
 
@@ -105,8 +105,8 @@ export function buildItems(scene, map, layerName) {
     }
 
     // ===== ИНТЕРАКТИВНЫЕ ОБЪЕКТЫ =====
-    // В старых картах у studyDesk может быть только itemId без type.
-    // Поэтому проверяем не только type === "interaction", но и известные itemId.
+    // Некоторые старые объекты в Tiled имеют только itemId без type.
+    // Например studyDesk — стол/компьютер для подготовки.
     const isInteraction =
       type === "interaction" ||
       itemId === "studyDesk" ||
@@ -136,8 +136,8 @@ export function buildItems(scene, map, layerName) {
 export function buildNpcs(scene, map, layerName) {
   const layer = map.getObjectLayer(layerName);
 
-  // На некоторых картах NPC может не быть — это нормальная ситуация.
   if (!layer) {
+    console.warn(`Object Layer '${layerName}' не найден.`);
     return {
       zones: scene.physics.add.staticGroup(),
       sprites: scene.add.group(),

@@ -91,16 +91,34 @@ function create() {
     story: this.story,
   });
 
-  // интро запускаем после полной инициализации сцены
-  this.story.playIntroOnce(this.dialogueManager);
+  this.gameStarted = false;
+
+  const startMenu = document.getElementById("startMenu");
+  const startBtn = document.getElementById("startGameBtn");
+
+  const startGame = () => {
+    this.gameStarted = true;
+    if (startMenu) {
+      startMenu.style.display = "none";
+      startMenu.setAttribute("aria-hidden", "true");
+    }
+    this.game.canvas.focus();
+    this.story.playIntroOnce(this.dialogueManager);
+  };
+
+  if (startBtn) {
+    startBtn.addEventListener("click", startGame, { once: true });
+  } else {
+    startGame();
+  }
 
   this.input.on("pointerdown", () => this.game.canvas.focus());
 }
 
 function update() {
-  const blocked = dialogueUI.isOpen();
+  const blocked = !this.gameStarted || dialogueUI.isOpen();
 
-  this.player.updateMovement(this.controls, { blocked: blocked || this.interaction?.isBusy?.() });
+  this.player.updateMovement(this.controls, { blocked });
 
   if (blocked) {
     this.hintE.hide();

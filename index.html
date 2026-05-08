@@ -7,6 +7,21 @@
   <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
 </head>
 <body>
+  <div id="startMenu" aria-hidden="false">
+    <div class="start-menu-panel">
+      <div class="start-menu-title">ФКН GO!</div>
+      <div class="start-menu-subtitle">Небольшая игра про общагу, тревогу и экзамен</div>
+      <button id="startGameBtn" class="start-menu-btn" type="button">Начать игру</button>
+      <details class="start-menu-help">
+        <summary>Подсказки</summary>
+        <div>Движение: WASD или стрелки</div>
+        <div>Взаимодействие: E</div>
+        <div>Диалоги: Space / Enter</div>
+        <div>В выборах нажимай на нужный вариант мышкой</div>
+      </details>
+    </div>
+  </div>
+
   <div id="game"></div>
 
   <div id="dialogue" aria-hidden="true">
@@ -19,8 +34,11 @@
   </div>
 
   <div id="blackScreen" aria-hidden="true">
-    <div id="blackScreenText"></div>
-    <div id="blackScreenHint">Space / Enter — дальше</div>
+    <div class="story-result-panel">
+      <div id="blackScreenText"></div>
+      <div id="blackScreenHint">Space / Enter — дальше</div>
+      <button id="restartGameBtn" class="story-restart-btn" type="button" hidden>Начать сначала</button>
+    </div>
   </div>
 
   <div id="miniGameOverlay" aria-hidden="true">
@@ -53,11 +71,14 @@
           <div id="miniGameTitle" class="mini-game-title">Мини-игра</div>
           <div id="miniGameBest" class="mini-game-best">Лучший счёт: 0</div>
           <button id="miniGameStart" class="computer-main-btn" type="button">Начать</button>
-          <button id="miniGameBack" class="computer-secondary-btn" type="button">Назад к играм</button>
+          <button id="miniGameBack" class="computer-secondary-btn" type="button">Вернуться к выбору игр</button>
         </div>
       </div>
 
       <div id="computerGamePlay" class="computer-screen" hidden>
+        <button id="miniGamePauseBack" class="mini-game-menu-btn" type="button" aria-label="Меню">
+          <span></span><span></span><span></span>
+        </button>
         <div class="mini-game-hud">
           <div id="miniGameScore">Очки: 0</div>
           <div id="miniGameLives" class="mini-game-lives" aria-label="Жизни"></div>
@@ -66,17 +87,26 @@
         <div id="miniGameInfo" class="mini-game-info">WASD / стрелки — управление</div>
       </div>
 
+      <div id="computerGamePause" class="computer-screen" hidden>
+        <div class="computer-game-over-card">
+          <div class="mini-game-title">Игра на паузе</div>
+          <div class="mini-game-best">Вернуться в меню или продолжить игру?</div>
+          <button id="miniGameResume" class="computer-main-btn" type="button">Продолжить</button>
+          <button id="miniGamePauseToMenu" class="computer-secondary-btn" type="button">Вернуться в меню</button>
+        </div>
+      </div>
+
       <div id="computerGameOver" class="computer-screen" hidden>
         <div class="computer-game-over-card">
           <div id="miniGameResultTitle" class="mini-game-title">Игра окончена</div>
           <div id="miniGameResultText" class="mini-game-best">Счёт: 0</div>
-          <button id="miniGameRetry" class="computer-main-btn" type="button">Играть снова</button>
-          <button id="miniGameToMenu" class="computer-secondary-btn" type="button">Выбрать другую игру</button>
+          <button id="miniGameRetry" class="computer-main-btn" type="button">Новая игра</button>
+          <button id="miniGameToMenu" class="computer-secondary-btn" type="button">Обратно в меню</button>
         </div>
       </div>
     </div>
   </div>
 
-  <script type="module"  <script type="module" src="main.js"></script>
+  <script type="module" src="main.js"></script>
 </body>
 </html>

@@ -58,11 +58,51 @@ export const STORY_SCENES = {
     ],
   },
 
+  needChooseStudyBeforeStudyDesk: {
+    speaker: "Васька",
+    lines: [
+      "Сейчас не время садиться за стол.",
+      "Я уже решил заняться другим.",
+    ],
+  },
+
+  needGoToSvetaBeforeStudyDesk: {
+    speaker: "Васька",
+    lines: [
+      "Я же сам решил сходить к Свете.",
+      "Если сейчас сяду за комп, то точно никуда не дойду.",
+    ],
+  },
+
+  needTalkToSemyonBeforeStudyDesk: {
+    speaker: "Васька",
+    lines: [
+      "Сначала надо поговорить с Семёном.",
+      "А то он уже что-то там про экзамен начал, а я сразу к компу полез.",
+    ],
+  },
+
   needTalkToSemyonBeforeExit: {
     speaker: "Васька",
     lines: [
       "Семён же обидится, если молча уйду.",
       "Надо сначала с ним перетереть.",
+    ],
+  },
+
+  wrongDoor: {
+    speaker: "Васька",
+    lines: [
+      "Не туда.",
+      "Если сейчас начну бродить по общаге, на экзамен точно не попаду.",
+    ],
+  },
+
+  cannotLeaveAudienceYet: {
+    speaker: "Васька",
+    lines: [
+      "Сейчас нельзя выйти.",
+      "Сначала надо закончить экзамен.",
     ],
   },
 
@@ -216,7 +256,7 @@ export const STORY_SCENES = {
   goToSvetaAfterStudy: {
     speaker: "Васька",
     lines: [
-      "Позанямался немного.",
+      "Позанимался немного.",
       "Быстро заскочу к Свете, скажу спасибо и в универ.",
       "Без вариантов.",
     ],
@@ -225,25 +265,81 @@ export const STORY_SCENES = {
   svetaFortuneTalk: {
     speaker: "Света",
     lines: [
-      "Я ждала тебя. Садись напротив. Свечи сегодня ярко горят — знак.",
-      "Ты выглядишь... потерянным. Как будто тень от экзамена уже накрыла тебя с головой.",
-      "(пауза, смотрит на карты) Не бойся. Здесь не колдуют. Здесь просто... смотрят. Вглубь.",
+      "Впереди у стола стоит Света. В комнате пахнет чаем, свечами и чем-то травяным.",
+      "О, Вась, привет! Подходи ко мне, чайник как раз вскипел.",
+      "Васька подходит ближе и неловко оглядывается на стул.",
+      "Васька: В общем, тут такое де...",
+      "Стой. Не садись.",
+      "Сегодня плохая примета. Лучше по возможности вообще не сидеть лишний раз.",
+      "Звучит странно, я знаю. Но лучше не садись. По крайней мере не у меня.",
+      "Васька: ...Ладно. Теперь мне даже страшнее спрашивать про экзамен.",
+    ],
+    onComplete: (state) => {
+      state?.setFlag("heard_sveta_no_sitting_advice");
+    },
+    choices: [
+      {
+        text: "Попросить погадать",
+        nextScene: "svetaAskFortune",
+        effects: [
+          { type: "incCounter", id: "anxiety", delta: -1 },
+          { type: "incCounter", id: "sveta_relation", delta: 1 },
+        ],
+      },
+      {
+        text: "Спросить про экзамен по-человечески",
+        nextScene: "svetaAskExamStory",
+        effects: [
+          { type: "incCounter", id: "social", delta: 1 },
+          { type: "incCounter", id: "sveta_relation", delta: 1 },
+        ],
+      },
+      {
+        text: "Попросить чай без мистики",
+        nextScene: "svetaTea",
+        effects: [
+          { type: "incCounter", id: "anxiety", delta: -1 },
+          { type: "incCounter", id: "sveta_relation", delta: 1 },
+        ],
+      },
+      {
+        text: "Сказать, что в приметы не веришь",
+        nextScene: "svetaFortuneSkeptic",
+        effects: [
+          { type: "incCounter", id: "anxiety", delta: 1 },
+          { type: "incCounter", id: "sveta_relation", delta: -1 },
+        ],
+      },
+    ],
+  },
+
+  svetaAskFortune: {
+    speaker: "Васька",
+    lines: [
+      "Ладно... погадай.",
+      "Только без фраз типа «дорога будет тяжёлой». Я это и так знаю.",
     ],
     choices: [
       {
-        text: "Погадай мне... страшно, если честно",
-        effects: { anxiety: -2, sveta_relation: +2 },
+        text: "Спросить, сдаст ли он экзамен",
         nextScene: "svetaFortuneReal",
+        effects: [
+          { type: "incCounter", id: "anxiety", delta: -1 },
+          { type: "incCounter", id: "luck", delta: 1 },
+        ],
       },
       {
-        text: "Я вообще-то не верю в эту эзотерику",
-        effects: { anxiety: +1, sveta_relation: -1 },
-        nextScene: "svetaFortuneSkeptic",
+        text: "Спросить, какой билет брать",
+        nextScene: "svetaTicketAdvice",
+        effects: [
+          { type: "incCounter", id: "preparation", delta: 1 },
+          { type: "incCounter", id: "luck", delta: 1 },
+        ],
       },
       {
-        text: "Может, просто чаю попьём? Без карт",
-        effects: { anxiety: -1, sveta_relation: +1 },
-        nextScene: "svetaTea",
+        text: "Передумать и просто поговорить",
+        nextScene: "svetaAskExamStory",
+        effects: [{ type: "incCounter", id: "social", delta: 1 }],
       },
     ],
   },
@@ -251,19 +347,187 @@ export const STORY_SCENES = {
   svetaFortuneReal: {
     speaker: "Света",
     lines: [
-      "(берёт карты, тасует странно — медленно, будто шепчет каждой)",
-      "Закрой глаза. Не думай об экзамене. Думай о том, чего боишься больше всего.",
-      "(выкладывает три карты) Хм... Старшие Арканы. Это серьёзно.",
-      "Экзамен... ты сдашь. Но есть нюанс. Сегодня у тебя будет выбор.",
-      "Если пойдёшь направо — получишь лёгкость. Если налево — знания. Если прямо — останешься один.",
-      "(поднимает глаза) Что выберешь — то и будет. Я не говорю, что лучше. Карты не советуют, они показывают дороги.",
-      "И ещё... Не бери билет с интегралами. Ты их не выучил. Бери графики. Там твоё.",
+      "Света медленно тасует карты, будто каждая карта тяжелее учебника.",
+      "Первая карта — тревога. Ну, неожиданность века.",
+      "Вторая — дорога. Значит, до аудитории ты всё-таки дойдёшь.",
+      "Третья... смешная.",
+      "Она говорит, что ты сдашь не потому, что всё знаешь.",
+      "А потому что в нужный момент перестанешь изображать, что тебе всё равно.",
+    ],
+    choices: [
+      {
+        text: "Поверить Свете",
+        nextScene: "svetaTrustAdvice",
+        effects: [
+          { type: "incCounter", id: "anxiety", delta: -2 },
+          { type: "incCounter", id: "sveta_relation", delta: 2 },
+          { type: "setFlag", id: "trusted_sveta_prediction" },
+        ],
+      },
+      {
+        text: "Отшутиться",
+        nextScene: "svetaJokeAfterFortune",
+        effects: [
+          { type: "incCounter", id: "social", delta: 1 },
+          { type: "incCounter", id: "anxiety", delta: -1 },
+        ],
+      },
+    ],
+  },
+
+  svetaTicketAdvice: {
+    speaker: "Света",
+    lines: [
+      "Билет с интегралами не бери.",
+      "Я не знаю, как это работает. Просто не бери.",
+      "Если будет что-то с графиками или определениями — цепляйся за это.",
+      "И не начинай ответ со слова «ну». Преподы это чувствуют, как акулы кровь.",
     ],
     onComplete: (state) => {
-      state?.incCounter("anxiety", -2);
-      state?.incCounter("fatigue", -1);
       state?.setFlag("visited_sveta");
       state?.setFlag("can_choose_exam_ticket");
+      state?.setFlag("heard_sveta_exam_advice");
+      state?.incCounter("preparation", 1);
+      state?.incCounter("anxiety", -1);
+      state?.setValue("currentGoal", "university");
+    },
+  },
+
+  svetaTrustAdvice: {
+    speaker: "Света",
+    lines: [
+      "Вот так лучше.",
+      "Бояться можно. Главное — не давать страху рулить вместо тебя.",
+      "И помни про посадку. Сегодня лучше лишний раз не садиться.",
+      "Да, звучит тупо. Нет, объяснять не буду.",
+    ],
+    onComplete: (state) => {
+      state?.setFlag("visited_sveta");
+      state?.setFlag("heard_sveta_exam_advice");
+      state?.incCounter("anxiety", -2);
+      state?.incCounter("luck", 1);
+      state?.setValue("currentGoal", "university");
+    },
+  },
+
+  svetaJokeAfterFortune: {
+    speaker: "Света",
+    lines: [
+      "Васька: То есть карты говорят, что я выживу?",
+      "Света: Карты говорят, что ты драматизируешь.",
+      "Васька: Это официальное заключение?",
+      "Света: С печатью и свечкой.",
+    ],
+    onComplete: (state) => {
+      state?.setFlag("visited_sveta");
+      state?.incCounter("social", 1);
+      state?.incCounter("anxiety", -1);
+      state?.setValue("currentGoal", "university");
+    },
+  },
+
+  svetaAskExamStory: {
+    speaker: "Васька",
+    lines: [
+      "А ты вообще знаешь, как этот экзамен проходит?",
+      "Не в смысле картами. Нормально.",
+    ],
+    choices: [
+      {
+        text: "Выслушать историю про старший курс",
+        nextScene: "svetaSeniorStory",
+        effects: [
+          { type: "incCounter", id: "preparation", delta: 1 },
+          { type: "incCounter", id: "social", delta: 1 },
+        ],
+      },
+      {
+        text: "Признаться, что страшно",
+        nextScene: "svetaHonestFear",
+        effects: [
+          { type: "incCounter", id: "anxiety", delta: -2 },
+          { type: "incCounter", id: "sveta_relation", delta: 2 },
+        ],
+      },
+      {
+        text: "Свернуть разговор и пойти дальше",
+        nextScene: "svetaLeaveFast",
+        effects: [{ type: "incCounter", id: "anxiety", delta: 1 }],
+      },
+    ],
+  },
+
+  svetaSeniorStory: {
+    speaker: "Света",
+    lines: [
+      "У меня подруга с курса старше сдавала у него прошлой зимой.",
+      "Она готовилась идеально, а на первом вопросе зависла и сказала: «можно я начну заново как человек?»",
+      "И знаешь что? Он разрешил.",
+      "Он не любит, когда выдумывают. Но если честно признать, что сбился, он иногда даёт собраться.",
+      "Так что не строй из себя камень. Камни тоже тонут, если их кинуть в сессию.",
+    ],
+    choices: [
+      {
+        text: "Запомнить совет",
+        nextScene: "svetaSeniorStoryAdvice",
+        effects: [
+          { type: "incCounter", id: "preparation", delta: 1 },
+          { type: "incCounter", id: "confidence", delta: 1 },
+        ],
+      },
+      {
+        text: "Попросить чай после такой истории",
+        nextScene: "svetaTea",
+        effects: [{ type: "incCounter", id: "anxiety", delta: -1 }],
+      },
+    ],
+  },
+
+  svetaSeniorStoryAdvice: {
+    speaker: "Света",
+    lines: [
+      "И ещё: если не знаешь точное определение, не начинай с фантазии.",
+      "Скажи то, в чём уверен. Потом аккуратно расширяй.",
+      "Преподаватели не всегда злые. Иногда они просто устали слушать уверенную чушь.",
+    ],
+    onComplete: (state) => {
+      state?.setFlag("visited_sveta");
+      state?.setFlag("heard_sveta_exam_advice");
+      state?.incCounter("preparation", 1);
+      state?.incCounter("confidence", 1);
+      state?.setValue("currentGoal", "university");
+    },
+  },
+
+  svetaHonestFear: {
+    speaker: "Света",
+    lines: [
+      "Васька: Мне реально страшно.",
+      "Света некоторое время молчит и уже без шутки смотрит на него.",
+      "Света: Тогда не делай вид, что нет.",
+      "Света: Страх не исчезает от понтов. Он просто становится громче.",
+      "Света: Выпей чаю. Потом иди. Не победителем, не героем — просто собой.",
+    ],
+    onComplete: (state) => {
+      state?.setFlag("visited_sveta");
+      state?.incCounter("anxiety", -3);
+      state?.incCounter("social", 1);
+      state?.incCounter("sveta_relation", 2);
+      state?.setValue("currentGoal", "university");
+    },
+  },
+
+  svetaLeaveFast: {
+    speaker: "Света",
+    lines: [
+      "Света: Убегаешь?",
+      "Васька: Тактическое отступление.",
+      "Света: Тогда тактически не садись сегодня лишний раз.",
+      "Васька: Опять это?",
+      "Света: Особенно это.",
+    ],
+    onComplete: (state) => {
+      state?.setFlag("visited_sveta");
       state?.setValue("currentGoal", "university");
     },
   },
@@ -271,14 +535,16 @@ export const STORY_SCENES = {
   svetaFortuneSkeptic: {
     speaker: "Света",
     lines: [
-      "(усмехается) Не веришь? А зря.",
-      "Картам всё равно, веришь ты или нет. Они говорят правду. Просто ты не хочешь слышать.",
-      "(быстро тасует, вытягивает одну карту) Шут. Перевёрнутый.",
-      "Ну что ж... Значит, будешь учиться сам. Держись. Экзамен сдашь, но дорога будет длинной и уставшей.",
+      "Света: Не веришь — нормально.",
+      "Света: Приметы не обязаны нравиться, чтобы портить настроение.",
+      "Васька: Очень убедительно.",
+      "Света: Я старалась быть максимально раздражающей.",
+      "Света: Но если без шуток — не накручивай себя у двери. Там все будут шуметь. Не впитывай чужую панику.",
     ],
     onComplete: (state) => {
-      state?.incCounter("anxiety", 1);
       state?.setFlag("visited_sveta");
+      state?.incCounter("anxiety", 1);
+      state?.incCounter("preparation", 1);
       state?.setValue("currentGoal", "university");
     },
   },
@@ -286,16 +552,19 @@ export const STORY_SCENES = {
   svetaTea: {
     speaker: "Света",
     lines: [
-      "(наливает чай в глиняную кружку, пар поднимается причудливыми узорами)",
-      "Держи. С ромашкой и мятой. Для нервов.",
-      "Твоя тревога имеет запах. Как старая бумага и пыль. Чай это уберёт.",
-      "(пауза, смотрит на кружку) Не торопись. Выдохни. Через час экзамен не убежит.",
-      "Просто будь собой. Даже если очень хочется стать кем-то умнее.",
+      "Света наливает чай в глиняную кружку.",
+      "Пар поднимается так красиво, будто он тоже пытается сдать экзамен и улететь.",
+      "Света: С ромашкой и мятой. Для нервов.",
+      "Васька: А если не поможет?",
+      "Света: Тогда хотя бы будет вкусно.",
+      "Света: И да. Сегодня лучше не садиться лишний раз. Странный день.",
     ],
     onComplete: (state) => {
+      state?.setFlag("visited_sveta");
+      state?.setFlag("heard_sveta_no_sitting_advice");
       state?.incCounter("anxiety", -3);
       state?.incCounter("fatigue", -1);
-      state?.setFlag("visited_sveta");
+      state?.incCounter("sveta_relation", 1);
       state?.setValue("currentGoal", "university");
     },
   },
@@ -303,19 +572,30 @@ export const STORY_SCENES = {
   svetaFortuneTalkAfterStudy: {
     speaker: "Света",
     lines: [
-      "(не поворачиваясь, смотрит на пламя свечи) А, это ты... По лицу вижу — учил.",
-      "У тебя под глазами круги. И пахнет от тебя усталостью и кофеином.",
-      "Второй раз за сегодня? Ну заходи. Но долго не сиди.",
-      "Карты говорят: ты почти готов. Осталось только не наломать дров перед дверью.",
+      "Света смотрит на Ваську и щурится.",
+      "Света: Учился.",
+      "Васька: Это вопрос?",
+      "Света: Это диагноз. У тебя лицо конспекта.",
+      "Света: Заходи, но быстро. Тебе уже не мистика нужна, а не развалиться перед дверью.",
     ],
     choices: [
       {
-        text: "Ещё чаю? На посошок",
-        nextScene: "svetaTeaAfterStudy",
+        text: "Попросить короткий совет",
+        nextScene: "svetaSeniorStoryAdvice",
+        effects: [
+          { type: "incCounter", id: "confidence", delta: 1 },
+          { type: "incCounter", id: "anxiety", delta: -1 },
+        ],
       },
       {
-        text: "Пойду к Семёну, вместе веселее",
+        text: "Выпить чай на посошок",
+        nextScene: "svetaTeaAfterStudy",
+        effects: [{ type: "incCounter", id: "anxiety", delta: -1 }],
+      },
+      {
+        text: "Пойти к Семёну",
         nextScene: "goBackToSemyonAfterStudy",
+        effects: [{ type: "incCounter", id: "social", delta: 1 }],
       },
     ],
   },
@@ -323,14 +603,17 @@ export const STORY_SCENES = {
   svetaTeaAfterStudy: {
     speaker: "Света",
     lines: [
-      "(наливает чай, добавляет что-то из маленькой баночки) Это зверобой.",
-      "Убирает тревожные мысли. И делает сны яркими.",
-      "(подаёт кружку) Пей медленно. И помни: ты не дурак. Ты просто устал. Это лечится.",
+      "Света: Чай быстрый. Без церемоний.",
+      "Васька: Быстрый чай звучит подозрительно.",
+      "Света: Быстрый чай — это когда ты пьёшь и не задаёшь вопросов.",
+      "Света: Ты подготовился лучше, чем думаешь. Теперь главное — не спалить себя паникой.",
     ],
     onComplete: (state) => {
-      state?.incCounter("anxiety", -2);
-      state?.incCounter("fatigue", -2);
       state?.setFlag("visited_sveta");
+      state?.setFlag("heard_sveta_no_sitting_advice");
+      state?.incCounter("anxiety", -2);
+      state?.incCounter("fatigue", -1);
+      state?.incCounter("confidence", 1);
       state?.setValue("currentGoal", "university");
     },
   },
@@ -371,10 +654,18 @@ export const STORY_SCENES = {
       {
         text: "Давай просто поболтаем, отвлечёмся",
         nextScene: "SemyonFunTalk",
+        effects: [
+          { type: "incCounter", id: "social", delta: 1 },
+          { type: "incCounter", id: "anxiety", delta: -1 },
+        ],
       },
       {
         text: "Может, по учёбе что подскажешь?",
         nextScene: "SemyonStudyTalk",
+        effects: [
+          { type: "incCounter", id: "preparation", delta: 1 },
+          { type: "incCounter", id: "confidence", delta: 1 },
+        ],
       },
     ],
   },
@@ -410,20 +701,106 @@ export const STORY_SCENES = {
   windowRestEvent: {
     speaker: "Васька",
     lines: [
-      "*садится на подоконник*",
-      "Тихо здесь...",
-      "Окно открыто, свежий воздух.",
-      "Вроде даже голова прояснилась немного.",
+      "Можно посидеть пару минут на подоконнике.",
+      "В коридоре тихо, за окном обычный день, которому вообще всё равно на экзамены.",
+    ],
+    choices: [
+      {
+        text: "Сесть и немного выдохнуть",
+        nextScene: "windowRestSit",
+        effects: [
+          { type: "incCounter", id: "anxiety", delta: -1 },
+          { type: "incCounter", id: "fatigue", delta: -1 },
+        ],
+      },
+      {
+        text: "Не задерживаться и идти дальше",
+        nextScene: "windowRestSkip",
+        effects: [{ type: "incCounter", id: "confidence", delta: 1 }],
+      },
+    ],
+  },
+
+  windowRestWithSvetaAdvice: {
+    speaker: "Васька",
+    lines: [
+      "Подоконник выглядит слишком заманчиво.",
+      "Но Света же сказала сегодня лишний раз не садиться.",
+      "Вот теперь я стою и реально думаю над советом человека со свечами.",
+    ],
+    choices: [
+      {
+        text: "Сесть. Да ну эти приметы",
+        nextScene: "windowRestSitAfterSveta",
+        effects: [
+          { type: "incCounter", id: "anxiety", delta: -1 },
+          { type: "incCounter", id: "fatigue", delta: -1 },
+          { type: "incCounter", id: "luck", delta: -1 },
+          { type: "setFlag", id: "sat_window_after_sveta_advice" },
+        ],
+      },
+      {
+        text: "Не садиться. Вдруг она права",
+        nextScene: "windowRestSkipBecauseSveta",
+        effects: [
+          { type: "incCounter", id: "sveta_relation", delta: 1 },
+          { type: "incCounter", id: "luck", delta: 1 },
+          { type: "setFlag", id: "skipped_window_because_sveta" },
+        ],
+      },
+    ],
+  },
+
+  windowRestSit: {
+    speaker: "Васька",
+    lines: [
+      "Васька садится на подоконник.",
+      "Пара минут тишины неожиданно помогают больше, чем половина советов за утро.",
+      "Ладно. Пора идти.",
     ],
     onComplete: (state) => {
       state?.setFlag("visited_window");
-      state?.incCounter("anxiety", -1);
+    },
+  },
+
+  windowRestSitAfterSveta: {
+    speaker: "Васька",
+    lines: [
+      "Васька садится.",
+      "Никакая молния с потолка не бьёт.",
+      "Хотя где-то внутри всё равно неприятно шевелится мысль: а вдруг зря?",
+    ],
+    onComplete: (state) => {
+      state?.setFlag("visited_window");
+    },
+  },
+
+  windowRestSkip: {
+    speaker: "Васька",
+    lines: [
+      "Нет. Если сяду, то ещё сильнее расслаблюсь.",
+      "Лучше дойти до аудитории, пока ноги сами идут.",
+    ],
+    onComplete: (state) => {
+      state?.setFlag("visited_window");
+    },
+  },
+
+  windowRestSkipBecauseSveta: {
+    speaker: "Васька",
+    lines: [
+      "Ладно. Не сяду.",
+      "Если Света потом спросит — смогу честно сказать, что послушал её странную примету.",
+      "Господи, во что превращает людей сессия.",
+    ],
+    onComplete: (state) => {
+      state?.setFlag("visited_window");
     },
   },
 
   windowAlreadyUsed: {
     speaker: "Васька",
-    lines: ["Я уже отдыхал тут.", "Пора двигаться дальше."],
+    lines: ["Я уже тут останавливался.", "Если ещё задержусь, экзамен начнётся без меня."],
   },
 
   /* ===== КОРИДОР УНИВЕРСИТЕТА И ЭКЗАМЕН ===== */
@@ -431,10 +808,75 @@ export const STORY_SCENES = {
   professorEntranceTalk: {
     speaker: "Александр Евгеньевич",
     lines: [
-      "*поправляет очки*",
-      "Следующий.",
-      "Готовьтесь. Заходить по одному, без паники.",
-      "Когда будете готовы — заходите.",
+      "Александр Евгеньевич стоит у двери и запускает студентов по одному.",
+      "Вокруг шумят, кто-то листает конспект, кто-то делает вид, что ему не страшно.",
+      "Профессор замечает Ваську.",
+      "Вы бледный, Петров. Экзамена боитесь?",
+    ],
+    choices: [
+      {
+        text: "Честно признаться",
+        nextScene: "professorEntranceHonest",
+        effects: [
+          { type: "incCounter", id: "anxiety", delta: -1 },
+          { type: "incCounter", id: "confidence", delta: 1 },
+        ],
+      },
+      {
+        text: "Сказать, что всё нормально",
+        nextScene: "professorEntranceLie",
+        effects: [
+          { type: "incCounter", id: "anxiety", delta: 1 },
+          { type: "incCounter", id: "confidence", delta: -1 },
+        ],
+      },
+      {
+        text: "Попросить совет перед входом",
+        nextScene: "professorEntranceAdvice",
+        effects: [
+          { type: "incCounter", id: "preparation", delta: 1 },
+          { type: "incCounter", id: "anxiety", delta: -1 },
+        ],
+      },
+    ],
+  },
+
+  professorEntranceHonest: {
+    speaker: "Александр Евгеньевич",
+    lines: [
+      "Бояться нормально.",
+      "Ненормально — молчать, если не понимаете вопрос.",
+      "Зайдёте, возьмёте билет, сядете и спокойно подготовитесь.",
+      "Без геройства. По существу.",
+    ],
+    onComplete: (state) => {
+      state?.setFlag("talked_professor_corridor");
+      state?.setFlag("talked_professor_entrance");
+      state?.setValue("currentGoal", "exam");
+    },
+  },
+
+  professorEntranceLie: {
+    speaker: "Александр Евгеньевич",
+    lines: [
+      "Ну-ну.",
+      "У меня за годы работы глаз намётан: «всё нормально» обычно значит «я сейчас умру». ",
+      "Ладно, Петров. Только не устраивайте спектакль у доски.",
+    ],
+    onComplete: (state) => {
+      state?.setFlag("talked_professor_corridor");
+      state?.setFlag("talked_professor_entrance");
+      state?.setValue("currentGoal", "exam");
+    },
+  },
+
+  professorEntranceAdvice: {
+    speaker: "Александр Евгеньевич",
+    lines: [
+      "Совет простой.",
+      "Если знаете — отвечайте коротко и точно.",
+      "Если не знаете — не сочиняйте новую науку на месте.",
+      "И не начинайте каждый ответ со слова «ну». Это не аргумент.",
     ],
     onComplete: (state) => {
       state?.setFlag("talked_professor_corridor");
@@ -445,27 +887,34 @@ export const STORY_SCENES = {
 
   professorEntranceRepeat: {
     speaker: "Александр Евгеньевич",
-    lines: ["Не задерживайте очередь.", "Заходите уже."],
+    lines: ["Петров, не задерживайте очередь.", "Готовы — заходите."],
   },
 
   crowdStudentsTalk: {
     speaker: "Система",
     lines: [
-      "В коридоре гул, как на вокзале.",
-      "Кто-то зубрит последние билеты, кто-то ржёт над мемами.",
-      "Кто-то нервно ходит туда-сюда.",
-      "Разговоры только усиливают тревогу.",
+      "Толпа перед аудиторией живёт отдельной жизнью.",
+      "Кто-то шепчет билеты, кто-то спорит, кто-то уже мысленно пересдаёт.",
+      "Если прислушаться, можно услышать полезное. Или окончательно добить себе нервы.",
     ],
     choices: [
       {
-        text: "Прислушаться, о чём говорят",
+        text: "Прислушаться к разговорам",
         nextScene: "crowdStudentsListen",
-        effects: [{ type: "incCounter", id: "anxiety", delta: 1 }],
+        effects: [
+          { type: "incCounter", id: "anxiety", delta: 1 },
+          { type: "incCounter", id: "preparation", delta: 1 },
+          { type: "setFlag", id: "listened_students" },
+        ],
       },
       {
-        text: "Отойти в сторону и не слушать",
+        text: "Отойти и не слушать",
         nextScene: "crowdStudentsIgnore",
-        effects: [{ type: "incCounter", id: "anxiety", delta: -1 }],
+        effects: [
+          { type: "incCounter", id: "anxiety", delta: -1 },
+          { type: "incCounter", id: "confidence", delta: 1 },
+          { type: "setFlag", id: "ignored_students" },
+        ],
       },
     ],
   },
@@ -473,32 +922,36 @@ export const STORY_SCENES = {
   crowdStudentsListen: {
     speaker: "Васька",
     lines: [
-      "*прислушивается*",
-      "«Он говорит, если упасть с третьего этажа, то можно не сдавать...»",
-      "«А мой сказал, что автоматом можно не надеяться».",
-      "Бред какой-то. Лучше б я не слушал.",
+      "«Он в прошлом году спрашивал определения, не задачи». ",
+      "«Да не, он любит графики». ",
+      "«А если молчать — сразу пересдача». ",
+      "Васька перестаёт слушать на слове «пересдача». Полезно, но неприятно.",
     ],
   },
 
   crowdStudentsIgnore: {
     speaker: "Васька",
     lines: [
-      "Игнорирую толпу.",
-      "Главное — своё не забыть.",
-      "Буду слушать других — точно запаникую.",
+      "Нет. Чужая паника заразная.",
+      "Я лучше останусь со своей. Она хотя бы родная.",
     ],
   },
 
   examTakeTicket: {
     speaker: "Александр Евгеньевич",
     lines: [
-      "*кивает на стол*",
-      "Подойдите, возьмите билет.",
-      "Садитесь вон туда. Готовьтесь. Тишина.",
+      "Фамилия?",
+      "Васька: Петров.",
+      "Александр Евгеньевич кивает на стопку билетов.",
+      "Берите билет. Потом садитесь за парту и готовьтесь.",
+      "Только без разговоров и героических страданий вслух.",
     ],
     onComplete: (state) => {
       state?.setFlag("got_exam_ticket");
       state?.setValue("currentGoal", "exam_prepare");
+      if (state?.hasFlag("heard_sveta_exam_advice")) {
+        state?.incCounter("confidence", 1);
+      }
     },
   },
 
@@ -513,17 +966,17 @@ export const STORY_SCENES = {
   needSitAtExamDesk: {
     speaker: "Александр Евгеньевич",
     lines: [
-      "Вы что, правила забыли?",
-      "Сначала готовитесь, потом отвечаете. Садитесь.",
+      "Петров, вы билет взяли не для красоты.",
+      "Сначала готовитесь за партой, потом отвечаете.",
     ],
   },
 
   examAnswerPrepared: {
     speaker: "Васька",
     lines: [
-      "*смотрит на часы*",
       "Время вышло.",
-      "Ладно, что есть — то есть.",
+      "Черновик выглядит так, будто его писал человек на грани просветления и паники одновременно.",
+      "Ладно. Что есть — то есть.",
       "Пойду сдавать.",
     ],
     onComplete: (state) => {
@@ -533,16 +986,17 @@ export const STORY_SCENES = {
 
   examDeskAlreadyUsed: {
     speaker: "Васька",
-    lines: ["Я уже всё написал.", "Теперь только к преподавателю идти."],
+    lines: ["Я уже подготовился.", "Дальше тянуть бессмысленно. Надо идти отвечать."],
   },
 
   examDefenseStart: {
     speaker: "Александр Евгеньевич",
     lines: [
       "Начинайте, Петров.",
-      "*слушает, иногда кивает*",
-      "Хорошо, достаточно.",
-      "Сейчас скажу результат.",
+      "Васька делает вдох и начинает отвечать.",
+      "Где-то он говорит уверенно, где-то цепляется за формулировки, где-то спасается тем, что помнит чужие советы.",
+      "Александр Евгеньевич слушает молча. Это хуже, чем если бы перебивал.",
+      "Достаточно. Сейчас скажу результат.",
     ],
     onComplete: (state) => {
       state?.setFlag("exam_defended");
@@ -551,7 +1005,7 @@ export const STORY_SCENES = {
 
   finalExamSummary: {
     speaker: "Система",
-    lines: ["Экзамен завершён."],
+    lines: ["Экзамен завершён.", "Дальше будет финальная сцена проекта."],
   },
 
   /* ===== ПРОФЕССОР — УСЛОВНЫЕ ФРАЗЫ ===== */
@@ -720,9 +1174,10 @@ export const STORY_SCENES = {
   audienceTimeSkip: {
     speaker: "Система",
     lines: [
-      "Через несколько минут запускают в аудиторию.",
-      "Васька садится на свободное место и ждёт очереди.",
-      "*тихий гул, скрип стульев, шёпот*",
+      "Через несколько минут дверь открывается.",
+      "В аудиторию запускают по одному.",
+      "Васька заходит один, стараясь не смотреть на толпу за спиной.",
+      "Внутри тише, чем в коридоре. От этого почему-то ещё тревожнее.",
     ],
   },
 
@@ -746,24 +1201,28 @@ export const STORY_SCENES = {
   endingPerfect: {
     speaker: "Александр Евгеньевич",
     lines: [
-      "*пауза*",
+      "Пауза длится так долго, что Васька успевает мысленно умереть два раза.",
       "Отлично, Петров.",
-      "Редко вижу такой уверенный ответ.",
-      "Пятёрка. Свободен.",
+      "Ответ уверенный, структура есть, лишнего почти нет.",
+      "Пятёрка. Свободны.",
     ],
   },
 
   endingGood: {
     speaker: "Александр Евгеньевич",
-    lines: ["Неплохо.", "Ошибки есть, но в целом хорошо.", "Четвёрка. Идите."],
+    lines: [
+      "Неплохо.",
+      "Были неточности, но вы не потерялись и по существу ответили.",
+      "Четвёрка. Идите.",
+    ],
   },
 
   endingNormal: {
     speaker: "Александр Евгеньевич",
     lines: [
-      "М-да... на троечку.",
-      "Но старались, видно.",
-      "Ладно, тройка. Следующий.",
+      "На троечку, Петров.",
+      "Местами путались, но видно, что хоть за что-то держались.",
+      "Тройка. Следующий.",
     ],
   },
 
@@ -771,14 +1230,15 @@ export const STORY_SCENES = {
     speaker: "Александр Евгеньевич",
     lines: [
       "Петров...",
-      "Это прямо на грани.",
-      "Ладно. Тройка. Идите и учите матчасть.",
+      "Это слабый ответ.",
+      "Очень слабый.",
+      "Двойка. На пересдачу подготовьтесь уже по-настоящему.",
     ],
   },
 
   endingFail: {
     speaker: "Александр Евгеньевич",
-    lines: ["*молча смотрит*", "Пересдача.", "Следующий."],
+    lines: ["Пересдача.", "Следующий."],
   },
 
   endingDisaster: {
