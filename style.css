@@ -65,7 +65,7 @@ canvas {
   color: #ffffffe2;
   opacity: 1; /* сделал полностью непрозрачным */
   margin-bottom: 4px; /* уменьшил отступ снизу, чтобы поднять имя чуть пониже относительно верха */
-  letter-spacing: 0.5px; /* небольшой интервал между буквами */
+  letter-spacing: 0.2px; /* небольшой интервал между буквами */
   text-shadow: 0 0 5px rgba(255, 255, 255, 0.3); /* легкое свечение */
 }
 
@@ -690,3 +690,14 @@ canvas {
 .story-restart-btn {
   margin-top: 24px;
 }
+
+
+/* ===== Небольшая правка читаемости диалогов ===== */
+
+#dialogue .dialogue-name,
+#dialogue .dialogue-text,
+#dialogue .dialogue-hint,
+.dialogue-choice-btn {
+  letter-spacing: 0.15px;
+}
+

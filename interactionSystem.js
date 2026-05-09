@@ -22,7 +22,7 @@ export function createInteractionSystem(
 
   function showBlackScreen(
     text,
-    { onComplete = null, minSkipDelayMs = 1000, charDelayMs = 28, linePauseMs = 450 } = {}
+    { onComplete = null, minSkipDelayMs = 450, charDelayMs = 55, linePauseMs = 320, showRestartButton = false } = {}
   ) {
     const root = document.getElementById("blackScreen");
     const textEl = document.getElementById("blackScreenText");
@@ -54,6 +54,7 @@ export function createInteractionSystem(
     let closed = false;
     let timerId = null;
     const renderedLines = [];
+    const canFastForwardAt = Date.now() + 1000;
 
     textEl.textContent = "";
     if (restartBtn) {
@@ -81,22 +82,24 @@ export function createInteractionSystem(
       textEl.textContent = [...renderedLines, currentVisible].join("\n");
     };
 
+    const revealControls = () => {
+      canClose = true;
+      if (showRestartButton && restartBtn) {
+        restartBtn.hidden = false;
+        restartBtn.onclick = () => window.location.reload();
+      }
+      if (hintEl) {
+        hintEl.textContent = showRestartButton ? "Начать заново?" : "Space / Enter — дальше";
+        hintEl.style.opacity = "0.65";
+      }
+    };
+
     const finishTyping = () => {
       clearTimer();
       textEl.textContent = lines.join("\n");
       lineIndex = lines.length;
       charIndex = 0;
-      timerId = window.setTimeout(() => {
-        canClose = true;
-        if (showRestartButton && restartBtn) {
-          restartBtn.hidden = false;
-          restartBtn.onclick = () => window.location.reload();
-        }
-        if (hintEl) {
-          hintEl.textContent = showRestartButton ? "Конец игры" : "Space / Enter — дальше";
-          hintEl.style.opacity = "0.65";
-        }
-      }, minSkipDelayMs);
+      revealControls();
     };
 
     const close = () => {
@@ -132,17 +135,7 @@ export function createInteractionSystem(
       if (closed) return;
 
       if (lineIndex >= lines.length) {
-        timerId = window.setTimeout(() => {
-          canClose = true;
-          if (showRestartButton && restartBtn) {
-            restartBtn.hidden = false;
-            restartBtn.onclick = () => window.location.reload();
-          }
-          if (hintEl) {
-            hintEl.textContent = showRestartButton ? "Конец игры" : "Space / Enter — дальше";
-            hintEl.style.opacity = "0.65";
-          }
-        }, minSkipDelayMs);
+        timerId = window.setTimeout(revealControls, minSkipDelayMs);
         return;
       }
 
@@ -164,6 +157,10 @@ export function createInteractionSystem(
     const onKeyDown = (e) => {
       if (e.code !== "Space" && e.code !== "Enter") return;
       e.preventDefault();
+
+      if (Date.now() < canFastForwardAt) {
+        return;
+      }
 
       if (!canClose) {
         finishTyping();
@@ -848,7 +845,7 @@ export function createInteractionSystem(
       story?.applyEffects(choice.effects);
 
       if (choice.action === "study") {
-        dialogueManager.startScene("studySession");
+        dialogueManager.startScene("studySelfChoice");
         return;
       }
 
@@ -1248,7 +1245,14 @@ export function createInteractionSystem(
                 ],
               };
 
-              showBlackScreen([...(toneLines[grade] ?? toneLines[3]), "", "Конец игры"], {
+              const finalLines = [
+                ...(toneLines[grade] ?? toneLines[3]),
+                "",
+                "Вот так и закончился экзамен.",
+                "Конец игры",
+              ];
+
+              showBlackScreen(finalLines, {
                 onComplete: null,
                 minSkipDelayMs: 1600,
                 charDelayMs: 26,

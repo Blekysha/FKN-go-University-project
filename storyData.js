@@ -324,6 +324,108 @@ export const STORY_SCENES = {
   },
 
 
+  studySelfChoice: {
+    speaker: "Васька",
+    lines: [
+      "Ладно. Без героизма.",
+      "Сейчас надо хотя бы понять, что я вообще знаю.",
+      "С чего начать?"
+    ],
+    choices: [
+      {
+        text: "Повторить базовые определения",
+        nextScene: "studySelfBasics",
+        effects: [
+          { type: "incCounter", id: "preparation", delta: 1 },
+          { type: "incCounter", id: "fatigue", delta: 1 },
+          { type: "incCounter", id: "anxiety", delta: -1 },
+          { type: "setFlag", id: "studied_exam" },
+          { type: "setValue", id: "currentGoal", value: "university" }
+        ],
+      },
+      {
+        text: "Взяться за самую страшную тему",
+        nextScene: "studySelfHardTopic",
+        effects: [
+          { type: "incCounter", id: "preparation", delta: 2 },
+          { type: "incCounter", id: "fatigue", delta: 2 },
+          { type: "incCounter", id: "anxiety", delta: 1 },
+          { type: "setFlag", id: "studied_exam" },
+          { type: "setValue", id: "currentGoal", value: "university" }
+        ],
+      },
+      {
+        text: "Составить план ответа наугад",
+        nextScene: "studySelfConspiracy",
+        effects: [
+          { type: "incCounter", id: "preparation", delta: 1 },
+          { type: "incCounter", id: "social", delta: 1 },
+          { type: "setFlag", id: "studied_exam" },
+          { type: "setValue", id: "currentGoal", value: "university" }
+        ],
+      },
+    ],
+  },
+
+  studySelfBasics: {
+    speaker: "Васька",
+    lines: [
+      "Так. База.",
+      "Определения, схемы, короткие примеры.",
+      "Не идеально, но хотя бы будет за что зацепиться.",
+      "Чем проще формулирую, тем меньше хочется исчезнуть."
+    ],
+    nextScene: "afterStudySelfDecision",
+  },
+
+  studySelfHardTopic: {
+    speaker: "Васька",
+    lines: [
+      "Вот она. Та самая тема, на которую я надеялся не смотреть.",
+      "*через несколько минут*",
+      "Нет, она всё ещё неприятная.",
+      "Но теперь хотя бы понятно, где я могу начать ответ.",
+      "Цена вопроса — минус остатки мозга."
+    ],
+    nextScene: "afterStudySelfDecision",
+  },
+
+  studySelfConspiracy: {
+    speaker: "Васька",
+    lines: [
+      "План ответа: сначала уверенно сказать умное слово.",
+      "Потом привести пример.",
+      "Потом сделать вид, что так и было задумано.",
+      "Странно, но это даже звучит как стратегия."
+    ],
+    nextScene: "afterStudySelfDecision",
+  },
+
+  afterStudySelfDecision: {
+    speaker: "Васька",
+    lines: [
+      "Так. Немного в голове уложилось.",
+      "Времени всё равно мало.",
+      "Что дальше?"
+    ],
+    choices: [
+      {
+        text: "Сразу идти в универ",
+        nextScene: "goToUniversity",
+        effects: [
+          { type: "setValue", id: "currentGoal", value: "university" }
+        ],
+      },
+      {
+        text: "Зайти к Свете перед экзаменом",
+        nextScene: "goToSvetaAfterStudy",
+        effects: [
+          { type: "setValue", id: "currentGoal", value: "sveta" }
+        ],
+      },
+    ],
+  },
+
   studySession: {
     speaker: "Васька",
     lines: [

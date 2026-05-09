@@ -22,7 +22,7 @@ export class DialogueUI {
 
     this.charDelayMs = Number.isFinite(options.charDelayMs)
       ? options.charDelayMs
-      : 22;
+      : 42;
 
     this.queue = [];
     this.choices = [];
