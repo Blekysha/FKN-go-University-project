@@ -324,6 +324,11 @@ export const STORY_SCENES = {
   },
 
 
+
+
+
+
+
   studySelfChoice: {
     speaker: "Васька",
     lines: [
@@ -332,28 +337,8 @@ export const STORY_SCENES = {
       "С чего начать?"
     ],
     choices: [
-      {
-        text: "Повторить базовые определения",
-        nextScene: "studySelfBasics",
-        effects: [
-          { type: "incCounter", id: "preparation", delta: 1 },
-          { type: "incCounter", id: "fatigue", delta: 1 },
-          { type: "incCounter", id: "anxiety", delta: -1 },
-          { type: "setFlag", id: "studied_exam" },
-          { type: "setValue", id: "currentGoal", value: "university" }
-        ],
-      },
-      {
-        text: "Взяться за самую страшную тему",
-        nextScene: "studySelfHardTopic",
-        effects: [
-          { type: "incCounter", id: "preparation", delta: 2 },
-          { type: "incCounter", id: "fatigue", delta: 2 },
-          { type: "incCounter", id: "anxiety", delta: 1 },
-          { type: "setFlag", id: "studied_exam" },
-          { type: "setValue", id: "currentGoal", value: "university" }
-        ],
-      },
+      { text: "Выбрать простую тему", nextScene: "studySimpleTopicChoice" },
+      { text: "Взяться за самую страшную тему", nextScene: "studyHardBreakdown" },
       {
         text: "Составить план ответа наугад",
         nextScene: "studySelfConspiracy",
@@ -367,27 +352,201 @@ export const STORY_SCENES = {
     ],
   },
 
-  studySelfBasics: {
+  studySimpleTopicChoice: {
     speaker: "Васька",
     lines: [
-      "Так. База.",
-      "Определения, схемы, короткие примеры.",
-      "Не идеально, но хотя бы будет за что зацепиться.",
-      "Чем проще формулирую, тем меньше хочется исчезнуть."
+      "Начну с простого.",
+      "Не потому что я трус.",
+      "Просто надо с чего-то вылезать."
     ],
-    nextScene: "afterStudySelfDecision",
+    choices: [
+      {
+        text: "Повторить определения",
+        nextScene: "studySimpleDefinition",
+        effects: [
+          { type: "incCounter", id: "preparation", delta: 1 },
+          { type: "incCounter", id: "anxiety", delta: -1 }
+        ],
+      },
+      {
+        text: "Разобрать схему из конспекта",
+        nextScene: "studySimpleScheme",
+        effects: [
+          { type: "incCounter", id: "preparation", delta: 1 },
+          { type: "incCounter", id: "fatigue", delta: 1 }
+        ],
+      },
+      {
+        text: "Придумать пример для ответа",
+        nextScene: "studySimpleExample",
+        effects: [
+          { type: "incCounter", id: "preparation", delta: 1 },
+          { type: "incCounter", id: "social", delta: 1 }
+        ],
+      },
+    ],
   },
 
-  studySelfHardTopic: {
+  studySimpleDefinition: {
     speaker: "Васька",
     lines: [
-      "Вот она. Та самая тема, на которую я надеялся не смотреть.",
-      "*через несколько минут*",
-      "Нет, она всё ещё неприятная.",
-      "Но теперь хотя бы понятно, где я могу начать ответ.",
-      "Цена вопроса — минус остатки мозга."
+      "Определения хотя бы можно выучить словами.",
+      "Если спросят глубже — буду страдать уже по ситуации.",
+      "Но база в голове немного появилась."
     ],
-    nextScene: "afterStudySelfDecision",
+    nextScene: "studySimpleAfterOneTopic",
+  },
+
+  studySimpleScheme: {
+    speaker: "Васька",
+    lines: [
+      "Схема выглядит как карта метро, которую рисовал человек без сна.",
+      "Но если читать слева направо, вроде становится логично.",
+      "Почти."
+    ],
+    nextScene: "studySimpleAfterOneTopic",
+  },
+
+  studySimpleExample: {
+    speaker: "Васька",
+    lines: [
+      "Пример — это спасательный круг.",
+      "Даже если теория поплывёт, можно будет начать с него.",
+      "Главное — не забыть, что я сам сейчас придумал."
+    ],
+    nextScene: "studySimpleAfterOneTopic",
+  },
+
+  studySimpleAfterOneTopic: {
+    speaker: "Васька",
+    lines: [
+      "Одну тему вроде зацепил.",
+      "Но до ощущения «я готов» ещё как до стипендии.",
+      "Голова уже просит паузу."
+    ],
+    choices: [
+      {
+        text: "Продолжить учиться",
+        nextScene: "studySimpleContinue",
+        effects: [
+          { type: "incCounter", id: "preparation", delta: 1 },
+          { type: "incCounter", id: "fatigue", delta: 1 },
+          { type: "setFlag", id: "studied_exam" },
+          { type: "setValue", id: "currentGoal", value: "university" }
+        ],
+      },
+      { text: "Поиграть за компьютером", nextScene: "studyHardGiveUpComputer" },
+      {
+        text: "Окликнуть Семёна",
+        nextScene: "studyHardTalkSemyon",
+        effects: [
+          { type: "incCounter", id: "social", delta: 1 },
+          { type: "incCounter", id: "anxiety", delta: -1 },
+          { type: "setFlag", id: "studied_exam" },
+          { type: "setValue", id: "currentGoal", value: "university" }
+        ],
+      },
+      {
+        text: "Зайти к Свете",
+        nextScene: "studyHardGoSveta",
+        effects: [
+          { type: "setFlag", id: "studied_exam" },
+          { type: "setValue", id: "currentGoal", value: "sveta" }
+        ],
+      },
+    ],
+  },
+
+  studySimpleContinue: {
+    speaker: "Васька",
+    lines: [
+      "Ладно, ещё немного.",
+      "Не до идеала, но хотя бы без полного позора.",
+      "В какой-то момент конспект перестаёт выглядеть как проклятие.",
+      "Это уже победа."
+    ],
+  },
+
+  studyHardBreakdown: {
+    speaker: "Васька",
+    lines: [
+      "Так. Самая страшная тема.",
+      "Я смотрю на неё.",
+      "Она смотрит на меня.",
+      "Пока побеждает она."
+    ],
+    choices: [
+      {
+        text: "Стиснуть зубы и продолжить",
+        nextScene: "studyHardContinue",
+        effects: [
+          { type: "incCounter", id: "preparation", delta: 2 },
+          { type: "incCounter", id: "fatigue", delta: 2 },
+          { type: "incCounter", id: "anxiety", delta: 1 },
+          { type: "setFlag", id: "studied_exam" },
+          { type: "setValue", id: "currentGoal", value: "university" }
+        ],
+      },
+      { text: "Сдаться и включить компьютер", nextScene: "studyHardGiveUpComputer" },
+      {
+        text: "Поговорить с Семёном",
+        nextScene: "studyHardTalkSemyon",
+        effects: [
+          { type: "incCounter", id: "social", delta: 1 },
+          { type: "incCounter", id: "anxiety", delta: -1 },
+          { type: "setFlag", id: "studied_exam" },
+          { type: "setValue", id: "currentGoal", value: "university" }
+        ],
+      },
+      {
+        text: "Сходить к Свете",
+        nextScene: "studyHardGoSveta",
+        effects: [{ type: "setValue", id: "currentGoal", value: "sveta" }],
+      },
+    ],
+  },
+
+  studyHardContinue: {
+    speaker: "Васька",
+    lines: [
+      "Нет. Я хотя бы попробую.",
+      "*через несколько минут*",
+      "Понятнее не стало, но появились слова, которыми можно отбиваться.",
+      "Если преподаватель будет милостив — этого хватит.",
+      "Если нет — ну, я хотя бы страдал честно."
+    ],
+  },
+
+  studyHardGiveUpComputer: {
+    speaker: "Васька",
+    lines: [
+      "Нет.",
+      "Мозг официально подал заявление на увольнение.",
+      "Я просто на пару минут включу комп.",
+      "На пару. Минут."
+    ],
+    onComplete: (state) => {
+      state?.setValue("openComputerAfterDialogue", true);
+    },
+  },
+
+  studyHardTalkSemyon: {
+    speaker: "Васька",
+    lines: [
+      "Семён.",
+      "Скажи что-нибудь нормальное, а то я сейчас вступлю в академический траур."
+    ],
+    nextScene: "studyWithSemyon",
+  },
+
+  studyHardGoSveta: {
+    speaker: "Васька",
+    lines: [
+      "Нет, мне надо сменить воздух.",
+      "Схожу к Свете.",
+      "Она хотя бы говорит странно, но уверенно."
+    ],
+    nextScene: "goToSvetaAfterStudy",
   },
 
   studySelfConspiracy: {
@@ -412,17 +571,65 @@ export const STORY_SCENES = {
       {
         text: "Сразу идти в универ",
         nextScene: "goToUniversity",
-        effects: [
-          { type: "setValue", id: "currentGoal", value: "university" }
-        ],
+        effects: [{ type: "setValue", id: "currentGoal", value: "university" }],
       },
       {
         text: "Зайти к Свете перед экзаменом",
         nextScene: "goToSvetaAfterStudy",
+        effects: [{ type: "setValue", id: "currentGoal", value: "sveta" }],
+      },
+    ],
+  },
+
+  afterComputerGameDecision: {
+    speaker: "Васька",
+    lines: [
+      "Блин.",
+      "Я действительно зашёл «на пару минут».",
+      "И почему-то эти пару минут закончились вместе с моей совестью."
+    ],
+    choices: [
+      {
+        text: "Панически дочитать хотя бы одну тему",
+        nextScene: "panicStudyAfterComputer",
         effects: [
-          { type: "setValue", id: "currentGoal", value: "sveta" }
+          { type: "incCounter", id: "preparation", delta: 1 },
+          { type: "incCounter", id: "anxiety", delta: 2 },
+          { type: "incCounter", id: "fatigue", delta: 1 },
+          { type: "setFlag", id: "studied_exam" },
+          { type: "setValue", id: "currentGoal", value: "university" }
         ],
       },
+      {
+        text: "Смириться и идти в универ",
+        nextScene: "afterComputerGoUniversity",
+        effects: [{ type: "setValue", id: "currentGoal", value: "university" }],
+      },
+      {
+        text: "Зайти к Свете, пока не поздно",
+        nextScene: "goToSvetaAfterStudy",
+        effects: [{ type: "setValue", id: "currentGoal", value: "sveta" }],
+      },
+    ],
+  },
+
+  panicStudyAfterComputer: {
+    speaker: "Васька",
+    lines: [
+      "Так. Всё. Теперь реально.",
+      "Открываю конспект на случайной странице.",
+      "Читаю быстро, почти без дыхания.",
+      "Половина не запомнилась, но одна мысль всё-таки зацепилась.",
+      "Лучше, чем ничего. Наверное."
+    ],
+  },
+
+  afterComputerGoUniversity: {
+    speaker: "Васька",
+    lines: [
+      "Ладно.",
+      "Будем считать, что я морально подготовился.",
+      "Очень сомнительная формулировка, но другой уже нет."
     ],
   },
 

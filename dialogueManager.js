@@ -46,6 +46,12 @@ export function createDialogueManager(scene, { inventory, state, story } = {}) {
         sceneData.onComplete?.(state, inventory, story);
         extraOnComplete?.(state, inventory, story);
 
+        if (state?.getValue("openComputerAfterDialogue") === true) {
+          state.removeValue("openComputerAfterDialogue");
+          window.dispatchEvent(new CustomEvent("fkn-open-computer"));
+          return;
+        }
+
         if (typeof sceneData.nextScene === "string") {
           startScene(sceneData.nextScene);
         }
