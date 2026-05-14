@@ -10,6 +10,12 @@ export function createStorySystem(scene, { state, dialogueManager } = {}) {
 
     if (state?.hasFlag("intro_played")) return;
 
+    if (!state?.getValue("teacherMood", null)) {
+      const moods = ["good", "neutral", "bad"];
+      const mood = moods[Math.floor(Math.random() * moods.length)];
+      state?.setValue("teacherMood", mood);
+    }
+
     state?.setFlag("intro_played");
     dm?.startScene("intro");
   }
@@ -76,6 +82,9 @@ export function createStorySystem(scene, { state, dialogueManager } = {}) {
     const L = state?.getCounter("luck") ?? 0;
     const C = state?.getCounter("confidence") ?? 0;
     const SR = state?.getCounter("sveta_relation") ?? 0;
+    const teacherMood = state?.getValue("teacherMood", "neutral") ?? "neutral";
+    const teacherMoodBonus =
+      teacherMood === "good" ? 1 : teacherMood === "bad" ? -1 : 0;
 
     const heardSveta = state?.hasFlag("heard_sveta_no_sitting_advice") ?? false;
     const trustedSveta = state?.hasFlag("skipped_window_because_sveta") ?? false;
@@ -88,7 +97,12 @@ export function createStorySystem(scene, { state, dialogueManager } = {}) {
     const effectivePrep = P + socialBonus + Math.max(0, L) + Math.floor(Math.max(0, C) / 2) + svetaBonus;
     const pressure = A + F;
 
-    let score = effectivePrep * 2 - A - Math.floor(F / 2) + Math.floor(Math.max(0, S) / 2);
+    let score =
+      effectivePrep * 2 -
+      A -
+      Math.floor(F / 2) +
+      Math.floor(Math.max(0, S) / 2) +
+      teacherMoodBonus;
 
     if (trustedSveta) score += 1;
     if (ignoredSveta) score -= 1;
@@ -136,6 +150,8 @@ export function createStorySystem(scene, { state, dialogueManager } = {}) {
       effectivePrep,
       pressure,
       score,
+      teacherMood,
+      teacherMoodBonus,
       grade,
       endingScene,
       endingTone,

@@ -103,7 +103,6 @@ export function createInteractionSystem(
     };
 
     const close = () => {
-      if (showRestartButton) return;
       if (!canClose || closed) return;
       closed = true;
       clearTimer();
@@ -165,10 +164,6 @@ export function createInteractionSystem(
 
       if (!canClose) {
         finishTyping();
-        return;
-      }
-
-      if (showRestartButton) {
         return;
       }
 

@@ -9,6 +9,18 @@ export function createDialogueManager(scene, { inventory, state, story } = {}) {
   function startScene(sceneId, options = {}) {
     if (dialogueUI.isOpen()) return;
 
+    if (sceneId === "examStudentMoodByState") {
+      const mood = state?.getValue("teacherMood", "neutral") ?? "neutral";
+      const sceneByMood = {
+        good: "examStudentMoodGood",
+        neutral: "examStudentMoodNeutral",
+        bad: "examStudentMoodBad",
+      };
+
+      startScene(sceneByMood[mood] ?? "examStudentMoodNeutral", options);
+      return;
+    }
+
     let sceneData = STORY_SCENES[sceneId];
     if (!sceneData) {
       console.warn(`[dialogueManager] Сцена '${sceneId}' не найдена.`);

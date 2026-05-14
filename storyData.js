@@ -1441,6 +1441,57 @@ export const STORY_SCENES = {
     lines: ["Экзамен завершён.", "Дальше будет финальная сцена проекта."],
   },
 
+
+  examStudentMoodGood: {
+    speaker: "Студент",
+    lines: [
+      "Ты ещё ждёшь?",
+      "Сегодня вроде можно выдохнуть.",
+      "Александр Евгеньевич не то чтобы добрый, но хотя бы не кусается.",
+      "Одного даже выслушал до конца. Это уже праздник."
+    ],
+    onComplete: (state) => {
+      state?.setFlag("heard_teacher_mood_rumor");
+    },
+  },
+
+  examStudentMoodNeutral: {
+    speaker: "Студент",
+    lines: [
+      "Ну... как обычно.",
+      "Не улыбается, но и молниями не стреляет.",
+      "Если отвечать по делу — жить можно.",
+      "Если начать нести чушь — он это быстро почувствует."
+    ],
+    onComplete: (state) => {
+      state?.setFlag("heard_teacher_mood_rumor");
+    },
+  },
+
+  examStudentMoodBad: {
+    speaker: "Студент",
+    lines: [
+      "Я бы на твоём месте не расслаблялся.",
+      "Он сегодня какой-то злой.",
+      "Не орёт, но смотрит так, будто уже всё понял.",
+      "Короче, лучше отвечай чётко и без воды."
+    ],
+    onComplete: (state) => {
+      state?.setFlag("heard_teacher_mood_rumor");
+      state?.incCounter("anxiety", 1);
+    },
+  },
+
+  examStudentRepeat: {
+    speaker: "Студент",
+    lines: [
+      "Я уже всё сказал.",
+      "Не накручивай себя слишком сильно.",
+      "Хотя да, звучит бесполезно перед экзаменом."
+    ],
+  },
+
+
   /* ===== ПРОФЕССОР — УСЛОВНЫЕ ФРАЗЫ ===== */
 
   professorConditionalLowPrep: {
@@ -1791,6 +1842,15 @@ export const NPC_DIALOGUES = {
     repeat: {
       speaker: "Система",
       lines: ["Вокруг всё так же шумят.", "Все ждут своей участи."],
+    },
+  },
+
+  exam_student: {
+    firstMeeting: {
+      useScene: "examStudentMoodByState",
+    },
+    repeat: {
+      useScene: "examStudentRepeat",
     },
   },
 

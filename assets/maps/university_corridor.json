@@ -468,8 +468,8 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":15.25,
-                 "x":759.5,
+                 "width":19.5,
+                 "x":755.25,
                  "y":75.875
                 }, 
                 {
@@ -589,6 +589,43 @@
                  "width":79.4527921817346,
                  "x":753.373368967184,
                  "y":71.3961992678955
+                }, 
+                {
+                 "height":25.9734,
+                 "id":62,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"npcId",
+                         "type":"string",
+                         "value":"exam_student"
+                        }, 
+                        {
+                         "name":"offsetX",
+                         "type":"string",
+                         "value":"0"
+                        }, 
+                        {
+                         "name":"offsetY",
+                         "type":"string",
+                         "value":"-3"
+                        }, 
+                        {
+                         "name":"outline",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"texture",
+                         "type":"string",
+                         "value":"npc_Professor"
+                        }],
+                 "rotation":0.846792,
+                 "type":"",
+                 "visible":true,
+                 "width":30.536,
+                 "x":677.232,
+                 "y":78.6383
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -597,7 +634,7 @@
          "y":0
         }],
  "nextlayerid":6,
- "nextobjectid":62,
+ "nextobjectid":63,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",
