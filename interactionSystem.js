@@ -19,10 +19,22 @@ export function createInteractionSystem(
   let blackScreenActive = false;
   let miniGameActive = false;
   let miniGameCleanup = null;
+  let lastAutoSceneMapKey = null;
+  let previousAutoSceneMapKey = null;
+
+  function spendTime(amount = 1) {
+    state?.incCounter("timeSpent", amount);
+  }
 
   function showBlackScreen(
     text,
-    { onComplete = null, minSkipDelayMs = 450, charDelayMs = 55, linePauseMs = 320, showRestartButton = false } = {}
+    {
+      onComplete = null,
+      minSkipDelayMs = 180,
+      charDelayMs = 75,
+      linePauseMs = 260,
+      showRestartButton = false,
+    } = {}
   ) {
     const root = document.getElementById("blackScreen");
     const textEl = document.getElementById("blackScreenText");
@@ -53,8 +65,9 @@ export function createInteractionSystem(
     let canClose = false;
     let closed = false;
     let timerId = null;
+    let isTypingLine = false;
+    let nextInputAllowedAt = Date.now() + 500;
     const renderedLines = [];
-    const canFastForwardAt = Date.now() + 1000;
 
     textEl.textContent = "";
     if (restartBtn) {
@@ -89,21 +102,42 @@ export function createInteractionSystem(
         restartBtn.onclick = () => window.location.reload();
       }
       if (hintEl) {
-        hintEl.textContent = showRestartButton ? "Начать заново?" : "Space / Enter — дальше";
+        hintEl.textContent = showRestartButton
+          ? "Начать заново?"
+          : "Space / Enter — дальше";
         hintEl.style.opacity = "0.65";
       }
     };
 
-    const finishTyping = () => {
+    const finishCurrentLine = () => {
       clearTimer();
-      textEl.textContent = lines.join("\n");
-      lineIndex = lines.length;
+
+      const currentLine = lines[lineIndex] ?? "";
+      if (lineIndex < lines.length) {
+        if (renderedLines[renderedLines.length - 1] !== currentLine) {
+          renderedLines.push(currentLine);
+        }
+
+        lineIndex += 1;
+      }
+
       charIndex = 0;
-      revealControls();
+      isTypingLine = false;
+      textEl.textContent = renderedLines.join("\n");
+      nextInputAllowedAt = Date.now() + 250;
+
+      if (lineIndex >= lines.length) {
+        timerId = window.setTimeout(revealControls, minSkipDelayMs);
+      } else if (hintEl) {
+        hintEl.textContent = "Space / Enter — дальше";
+        hintEl.style.opacity = "0.65";
+      }
     };
 
     const close = () => {
+      if (showRestartButton) return;
       if (!canClose || closed) return;
+
       closed = true;
       clearTimer();
       window.removeEventListener("keydown", onKeyDown);
@@ -131,50 +165,90 @@ export function createInteractionSystem(
       onComplete?.();
     };
 
-    const tick = () => {
+    const typeLine = () => {
       if (closed) return;
 
       if (lineIndex >= lines.length) {
-        timerId = window.setTimeout(revealControls, minSkipDelayMs);
+        revealControls();
         return;
       }
 
-      const currentLine = lines[lineIndex];
-      charIndex += 1;
-      render();
+      isTypingLine = true;
+      canClose = false;
+      if (hintEl) {
+        hintEl.textContent = "Space / Enter — допечатать";
+        hintEl.style.opacity = "0.45";
+      }
 
-      if (charIndex >= currentLine.length) {
-        renderedLines.push(currentLine);
+      const currentLine = lines[lineIndex] ?? "";
+
+      // Пустой абзац сразу добавляется как пауза/разделитель.
+      if (currentLine.length === 0) {
+        renderedLines.push("");
         lineIndex += 1;
         charIndex = 0;
-        timerId = window.setTimeout(tick, linePauseMs);
+        isTypingLine = false;
+        render();
+        nextInputAllowedAt = Date.now() + 180;
+        if (lineIndex >= lines.length) {
+          timerId = window.setTimeout(revealControls, minSkipDelayMs);
+        } else {
+          timerId = window.setTimeout(typeLine, linePauseMs);
+        }
         return;
       }
 
-      timerId = window.setTimeout(tick, charDelayMs);
+      const step = () => {
+        if (closed) return;
+
+        const line = lines[lineIndex] ?? "";
+        charIndex += 1;
+        render();
+
+        if (charIndex >= line.length) {
+          finishCurrentLine();
+          return;
+        }
+
+        let delay = charDelayMs;
+        const lastChar = line[charIndex - 1];
+        if (lastChar === "." || lastChar === "!" || lastChar === "?") delay += 55;
+        if (lastChar === "," || lastChar === "—") delay += 25;
+        if (lastChar === "…") delay += 80;
+
+        timerId = window.setTimeout(step, delay);
+      };
+
+      timerId = window.setTimeout(step, charDelayMs);
     };
 
     const onKeyDown = (e) => {
       if (e.code !== "Space" && e.code !== "Enter") return;
       e.preventDefault();
 
-      if (Date.now() < canFastForwardAt) {
+      if (Date.now() < nextInputAllowedAt) return;
+
+      if (isTypingLine) {
+        finishCurrentLine();
         return;
       }
 
-      if (!canClose) {
-        finishTyping();
+      if (lineIndex < lines.length) {
+        clearTimer();
+        typeLine();
         return;
       }
+
+      if (showRestartButton) return;
 
       close();
     };
 
     window.addEventListener("keydown", onKeyDown, { passive: false });
     root.addEventListener("click", close);
-    timerId = window.setTimeout(tick, 300);
-  }
 
+    timerId = window.setTimeout(typeLine, 250);
+  }
 
 
   function getBestScore(gameType) {
@@ -203,6 +277,7 @@ export function createInteractionSystem(
     // Игры разгружают голову, но съедают время и силы.
     state?.incCounter("anxiety", -1);
     state?.incCounter("fatigue", 2);
+    state?.incCounter("timeSpent", 2);
 
     if (session.scores.snake > 0) state?.incCounter("social", 1);
     if (session.scores.catch >= 5) state?.incCounter("luck", 1);
@@ -855,7 +930,7 @@ export function createInteractionSystem(
       }
 
       if (choice.action === "studyDeepTopic") {
-        dialogueManager.startScene("studyDeepTopic");
+        dialogueManager.startScene("studyHardBreakdown");
         return;
       }
 
@@ -885,17 +960,129 @@ export function createInteractionSystem(
         {
           text: "Углубиться в самую сложную тему",
           action: "studyDeepTopic",
-          effects: [
-            { type: "incCounter", id: "preparation", delta: 2 },
-            { type: "incCounter", id: "fatigue", delta: 2 },
-            { type: "incCounter", id: "anxiety", delta: 1 },
-            { type: "setFlag", id: "studied_exam" },
-            { type: "setValue", id: "currentGoal", value: "university" },
-          ],
         },
         { text: "Поиграть", action: "computer" },
       ],
     });
+  }
+
+  function updateExamLatenessFlags() {
+    const timeSpent = state.getCounter("timeSpent");
+
+    if (timeSpent >= 7) {
+      state.setFlag("very_late_to_exam");
+      state.setFlag("late_to_exam");
+      return;
+    }
+
+    if (timeSpent >= 4) {
+      state.setFlag("late_to_exam");
+    }
+  }
+
+  function hideLateCorridorNpcs() {
+    const npcs = levelManager.getNpcs?.();
+    const zones = npcs?.zones?.getChildren?.() ?? [];
+
+    zones.forEach((zone) => {
+      const npcId = zone?.npcData?.npcId ?? "";
+      const objectName = zone?.npcData?.objectName ?? "";
+      const textureKey = zone?.npcData?.sprite?.texture?.key ?? "";
+
+      const isExamStudent =
+        npcId === "exam_student" ||
+        npcId === "npc_exam_student" ||
+        objectName === "exam_student" ||
+        objectName === "npc_exam_student" ||
+        textureKey === "npc_exam_student";
+
+      const isCrowdStudents =
+        npcId === "crowd_students" ||
+        npcId === "npc_crowd_students" ||
+        objectName === "crowd_students" ||
+        objectName === "npc_crowd_students" ||
+        textureKey === "npc_crowd_students";
+
+      if (
+        (state.hasFlag("very_late_to_exam") && (isExamStudent || isCrowdStudents)) ||
+        (state.hasFlag("late_to_exam") && isExamStudent)
+      ) {
+        zone.npcData?.sprite?.destroy?.();
+        zone.destroy?.();
+      }
+    });
+  }
+
+  function checkMapAutoScenes() {
+    const mapKey = levelManager.getCurrentMapKey?.() ?? null;
+    if (!mapKey || mapKey === lastAutoSceneMapKey) return;
+
+    previousAutoSceneMapKey = lastAutoSceneMapKey;
+    lastAutoSceneMapKey = mapKey;
+
+    if (mapKey === "room_Sveta") {
+      if (!state.hasFlag("sveta_room_intro_seen")) {
+        state.setFlag("sveta_room_intro_seen");
+        dialogueUI.show({
+          speaker: "",
+          lines: [
+            "Впереди у стола стоит Света.",
+            "В комнате пахнет чаем, свечами и чем-то травяным.",
+            "Кажется, она сразу заметила Ваську.",
+          ],
+        });
+        return;
+      }
+    }
+
+    if (mapKey === "perehod") {
+      if (state.hasFlag("transition_acquaintance_left")) return;
+
+      if (!state.hasFlag("met_transition_acquaintance")) {
+        dialogueManager.startScene("transitionAcquaintanceIntro");
+        return;
+      }
+
+      if (
+        previousAutoSceneMapKey === "corridor" &&
+        state.hasFlag("met_transition_acquaintance") &&
+        !state.hasFlag("transition_acquaintance_return_seen")
+      ) {
+        state.setFlag("transition_acquaintance_return_seen");
+        dialogueManager.startScene("transitionAcquaintanceReturn");
+        return;
+      }
+    }
+
+    if (mapKey === "university_corridor") {
+      state.setFlag("transition_acquaintance_left");
+      updateExamLatenessFlags();
+
+      const timeSpent = state.getCounter("timeSpent");
+
+      if (!state.hasFlag("entered_university_corridor_once")) {
+        state.setFlag("entered_university_corridor_once");
+
+        if (state.hasFlag("very_late_to_exam")) {
+          hideLateCorridorNpcs();
+          dialogueManager.startScene("universityCorridorVeryLateArrival");
+          return;
+        }
+
+        if (state.hasFlag("late_to_exam")) {
+          hideLateCorridorNpcs();
+          dialogueManager.startScene("universityCorridorLateArrival");
+          return;
+        }
+
+        dialogueManager.startScene("universityCorridorArrival");
+        return;
+      }
+
+      if (state.hasFlag("late_to_exam")) {
+        hideLateCorridorNpcs();
+      }
+    }
   }
 
   function findItem() {
@@ -1013,14 +1200,19 @@ export function createInteractionSystem(
       return;
     }
 
-    if (doorId === "svetaDoor") {
-      const alreadyVisitedSveta = state.hasFlag("visited_sveta");
+    const goesToSvetaRoom =
+      doorId === "svetaDoor" || d?.targetMap === "room_Sveta";
+
+    if (goesToSvetaRoom) {
       const goal = state.getValue("currentGoal");
 
-      if (!alreadyVisitedSveta && goal !== "sveta") {
+      if (goal !== "sveta") {
         dialogueUI.show({
-          speaker: "Васька",
-          lines: ["Сейчас лучше заняться другим."],
+          speaker: "",
+          lines: [
+            "Сейчас лучше не идти к Свете.",
+            "Васька уже решил заняться другим.",
+          ],
         });
         return;
       }
@@ -1052,11 +1244,15 @@ export function createInteractionSystem(
         return;
       }
 
-      dialogueManager.startScene("audienceTimeSkip", {
+      dialogueManager.startScene(state.hasFlag("late_to_exam") ? "audienceLateEntry" : "audienceTimeSkip", {
         onComplete: () => {
           state.setFlag("entered_audience");
           state.setValue("currentGoal", "exam");
-          levelManager.load(d.targetMap, d.targetSpawn);
+          if (d?.targetMap === "university_corridor") {
+      updateExamLatenessFlags();
+    }
+
+    levelManager.load(d.targetMap, d.targetSpawn);
         },
       });
 
@@ -1074,6 +1270,10 @@ export function createInteractionSystem(
         lines: ["Заперто.", `Нужен ключ: ${d.keyId}`],
       });
       return;
+    }
+
+    if (d?.targetMap === "university_corridor") {
+      updateExamLatenessFlags();
     }
 
     levelManager.load(d.targetMap, d.targetSpawn);
@@ -1129,6 +1329,26 @@ export function createInteractionSystem(
       return;
     }
 
+    if (id === "tetruDoor") {
+      dialogueManager.startScene("tetruDoorMemory");
+      return;
+    }
+
+    if (id === "universityStairs") {
+      dialogueManager.startScene("universityStairsNoNeed");
+      return;
+    }
+
+    if (id === "universitySchedule") {
+      dialogueManager.startScene("universityScheduleBoard");
+      return;
+    }
+
+    if (id === "coffeeMachine") {
+      dialogueManager.startScene("coffeeMachineBroken");
+      return;
+    }
+
     if (id === "examDesk") {
       if (!state.hasFlag("got_exam_ticket")) {
         dialogueManager.startScene("needTakeTicketFirst");
@@ -1148,13 +1368,28 @@ export function createInteractionSystem(
             ]
           : []),
         "Васька садится за парту.",
-        "Перед ним билет, черновик и несколько минут на подготовку.",
-        "Мысли путаются, но постепенно ответ складывается в голове.",
+        ...(state.hasFlag("very_late_to_exam")
+          ? [
+              "Времени почти не осталось.",
+              "Семяниный Владимир Василькович уже явно ждёт, когда это закончится.",
+              "Васька торопливо смотрит в билет и цепляется за первые знакомые слова.",
+              "Ответ складывается наспех — не так, как хотелось, но лучше, чем молчать.",
+            ]
+          : state.hasFlag("late_to_exam")
+            ? [
+                "Времени меньше, чем должно быть.",
+                "Васька быстро пробегает глазами билет.",
+                "Мысли путаются сильнее обычного, но постепенно ответ всё-таки собирается.",
+              ]
+            : [
+                "Перед ним билет, черновик и несколько минут на подготовку.",
+                "Мысли путаются, но постепенно ответ складывается в голове.",
+              ]),
       ];
 
       showBlackScreen(deskLines, {
-        minSkipDelayMs: 500,
-        lineDelayMs: 450,
+        minSkipDelayMs: 220,
+        linePauseMs: 360,
         onComplete: () => {
           state.setFlag("exam_prepared_answer");
           dialogueManager.startScene("examAnswerPrepared");
@@ -1168,8 +1403,20 @@ export function createInteractionSystem(
     item.destroy();
     currentItem = null;
 
+    if (
+      item.itemData?.type === "key" ||
+      id.toLowerCase().includes("key") ||
+      id.toLowerCase().includes("ключ")
+    ) {
+      dialogueUI.show({
+        speaker: "",
+        lines: ["Опа, ключик!"],
+      });
+      return;
+    }
+
     dialogueUI.show({
-      speaker: "Система",
+      speaker: "",
       lines: [`Получен предмет: ${id}`],
     });
   }
@@ -1177,12 +1424,32 @@ export function createInteractionSystem(
   // НПС
   function handleNpc(npcId) {
     if (npcId === "ProfessorEntrance") {
-      dialogueManager.startNpc(npcId);
+      if (state.hasFlag("very_late_to_exam")) {
+        if (state.hasFlag("talked_professor_entrance")) {
+          dialogueManager.startScene("professorEntranceVeryLateRepeat");
+        } else {
+          dialogueManager.startScene("professorEntranceVeryLate");
+        }
+      } else {
+        dialogueManager.startNpc(npcId);
+      }
       return;
     }
 
     if (npcId === "crowd_students") {
+      if (state.hasFlag("very_late_to_exam")) return;
       dialogueManager.startNpc(npcId);
+      return;
+    }
+
+    if (npcId === "transition_girl") {
+      if (state.hasFlag("transition_acquaintance_left")) {
+        dialogueManager.startScene("transitionAcquaintanceGone");
+      } else if (state.hasFlag("met_transition_acquaintance")) {
+        dialogueManager.startScene("transitionAcquaintanceReturn");
+      } else {
+        dialogueManager.startScene("transitionAcquaintanceIntro");
+      }
       return;
     }
 
@@ -1193,7 +1460,40 @@ export function createInteractionSystem(
       }
 
       if (!state.hasFlag("got_exam_ticket")) {
-        dialogueManager.startScene("examTakeTicket");
+        const teacherMood = state.getValue("teacherMood", "neutral");
+
+        if (state.hasFlag("very_late_to_exam") && teacherMood === "bad") {
+          dialogueManager.startScene("examRefusedVeryLateBadMood", {
+            onComplete: () => {
+              state.setFlag("exam_finished");
+              state.setValue("lastExamGrade", 2);
+              state.setValue("lastExamEnding", "endingEdge");
+
+              showBlackScreen(
+                [
+                  "Экзамен закончился, даже не начавшись.",
+                  "Оценка: 2.",
+                  "",
+                  "Семяниный был не в настроении.",
+                  "А Васька пришёл слишком поздно.",
+                  "",
+                  "Вот так и закончился экзамен.",
+                  "Конец игры",
+                ],
+                { showRestartButton: true, charDelayMs: 90, linePauseMs: 360 }
+              );
+            },
+          });
+          return;
+        }
+
+        if (state.hasFlag("very_late_to_exam")) {
+          dialogueManager.startScene("examTakeTicketVeryLate");
+        } else if (state.hasFlag("late_to_exam")) {
+          dialogueManager.startScene("examTakeTicketLate");
+        } else {
+          dialogueManager.startScene("examTakeTicket");
+        }
         return;
       }
 
@@ -1212,6 +1512,8 @@ export function createInteractionSystem(
           dialogueManager.startScene(result.endingScene, {
             onComplete: () => {
               const grade = result.grade ?? "?";
+              const isVeryLate = state.hasFlag("very_late_to_exam");
+              const isLate = state.hasFlag("late_to_exam");
               const toneLines = {
                 5: [
                   "Экзамен закончен.",
@@ -1245,8 +1547,23 @@ export function createInteractionSystem(
                 ],
               };
 
+              const lateLines = isVeryLate
+                ? [
+                    "",
+                    "Опоздание слишком сильно испортило впечатление.",
+                    "Даже хороший ответ уже не мог спасти ситуацию полностью.",
+                  ]
+                : isLate
+                  ? [
+                      "",
+                      "Опоздание Семяниный явно заметил.",
+                      "И, конечно, не забыл.",
+                    ]
+                  : [];
+
               const finalLines = [
                 ...(toneLines[grade] ?? toneLines[3]),
+                ...lateLines,
                 "",
                 "Вот так и закончился экзамен.",
                 "Конец игры",
@@ -1255,7 +1572,7 @@ export function createInteractionSystem(
               showBlackScreen(finalLines, {
                 onComplete: null,
                 minSkipDelayMs: 1600,
-                charDelayMs: 26,
+                charDelayMs: 90,
                 linePauseMs: 520,
                 showRestartButton: true,
               });
@@ -1263,6 +1580,10 @@ export function createInteractionSystem(
           });
         },
       });
+      return;
+    }
+
+    if (npcId === "exam_student" && state.hasFlag("very_late_to_exam")) {
       return;
     }
 
@@ -1301,7 +1622,17 @@ export function createInteractionSystem(
     }
   }
 
+  function enforceLateCorridorNpcsHidden() {
+    const mapKey = levelManager.getCurrentMapKey?.() ?? null;
+    if (mapKey === "university_corridor" && state.hasFlag("very_late_to_exam")) {
+      hideLateCorridorNpcs();
+    }
+  }
+
   function update() {
+    checkMapAutoScenes();
+    enforceLateCorridorNpcsHidden();
+
     if (blackScreenActive || miniGameActive) {
       hint.hide();
       return;

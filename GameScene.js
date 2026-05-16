@@ -41,6 +41,7 @@ function preload() {
   this.load.image("npc_ProfessorEntrance", "assets/npc_ProfessorEntrance.png"); // Преподаватель у аудитории
   this.load.image("npc_crowd_students", "assets/npc_crowd_students.png"); // Толпа студентов
   this.load.image("npc_exam_student", "assets/npc_exam_student.png"); // Студент после экзамена
+  this.load.image("npc_transition_girl", "assets/npc_transition_girl.png"); // Знакомая в переходе
   this.load.image("eye", "assets/eye.png");
 }
 

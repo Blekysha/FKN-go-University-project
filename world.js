@@ -21,11 +21,55 @@ export function buildColliders(scene, map, layerName) {
   layer.objects.forEach((o) => {
     if (!o.width || !o.height) return;
 
+    const colliderId =
+      getProp(o, "colliderId", "") ||
+      getProp(o, "npcId", "") ||
+      o.name ||
+      "";
+
+    const isExamStudentCollider =
+      colliderId === "exam_student" ||
+      colliderId === "npc_exam_student";
+
+    const isCrowdStudentsCollider =
+      colliderId === "crowd_students" ||
+      colliderId === "npc_crowd_students";
+
+    const isTransitionGirlCollider =
+      colliderId === "transition_girl" ||
+      colliderId === "npc_transition_girl";
+
+    // late: убираем только коллайдер одиночного студента.
+    // very late: убираем и одиночного студента, и толпу.
+    if (scene.storyState?.hasFlag?.("very_late_to_exam")) {
+      if (isExamStudentCollider || isCrowdStudentsCollider) {
+        return;
+      }
+    } else if (scene.storyState?.hasFlag?.("late_to_exam")) {
+      if (isExamStudentCollider) {
+        return;
+      }
+    }
+
+    // Девушка в переходе ушла после выхода Васьки в университет.
+    if (
+      scene.storyState?.hasFlag?.("transition_acquaintance_left") &&
+      isTransitionGirlCollider
+    ) {
+      return;
+    }
+
     const x = o.x + o.width / 2;
     const y = o.y + o.height / 2;
 
     const zone = scene.add.zone(x, y, o.width, o.height);
     scene.physics.add.existing(zone, true);
+
+    zone.colliderData = {
+      colliderId,
+      objectName: o.name || "",
+    };
+
     walls.add(zone);
   });
 
@@ -111,7 +155,11 @@ export function buildItems(scene, map, layerName) {
       type === "interaction" ||
       itemId === "studyDesk" ||
       itemId === "windowRest" ||
-      itemId === "examDesk";
+      itemId === "examDesk" ||
+      itemId === "tetruDoor" ||
+      itemId === "universityStairs" ||
+      itemId === "universitySchedule" ||
+      itemId === "coffeeMachine";
 
     if (isInteraction && itemId) {
       const x = o.width ? o.x + o.width / 2 : o.x;
@@ -150,6 +198,45 @@ export function buildNpcs(scene, map, layerName) {
   layer.objects.forEach((o) => {
     const npcId = getProp(o, "npcId", "");
     if (!npcId) return;
+
+    // Опоздание влияет на состав NPC ещё ДО создания спрайтов и коллайдеров.
+    // Проверяем не только npcId, но и texture/name, потому что в Tiled
+    // объект может быть назван иначе.
+    const textureForLateCheck = getProp(o, "texture", "");
+    const objectNameForLateCheck = o.name || "";
+
+    const isExamStudent =
+      npcId === "exam_student" ||
+      npcId === "npc_exam_student" ||
+      textureForLateCheck === "npc_exam_student" ||
+      objectNameForLateCheck === "exam_student" ||
+      objectNameForLateCheck === "npc_exam_student";
+
+    const isCrowdStudents =
+      npcId === "crowd_students" ||
+      npcId === "npc_crowd_students" ||
+      textureForLateCheck === "npc_crowd_students" ||
+      objectNameForLateCheck === "crowd_students" ||
+      objectNameForLateCheck === "npc_crowd_students";
+
+    // late: одиночный студент уже ушёл.
+    // very late: ушли и одиночный студент, и толпа.
+    if (scene.storyState?.hasFlag?.("very_late_to_exam")) {
+      if (isExamStudent || isCrowdStudents) {
+        return;
+      }
+    } else if (scene.storyState?.hasFlag?.("late_to_exam")) {
+      if (isExamStudent) {
+        return;
+      }
+    }
+
+    if (
+      npcId === "transition_girl" &&
+      scene.storyState?.hasFlag?.("transition_acquaintance_left")
+    ) {
+      return;
+    }
 
     const texture = getProp(o, "texture", "");
     const offsetY = Number(getProp(o, "offsetY", 0));

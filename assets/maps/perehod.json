@@ -160,8 +160,8 @@
                  "type":"",
                  "visible":true,
                  "width":46.4545727272727,
-                 "x":55.5908954545455,
-                 "y":64.4090909090909
+                 "x":252.045440909091,
+                 "y":66.5909090909091
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -173,7 +173,44 @@
          "draworder":"topdown",
          "id":7,
          "name":"NPCs",
-         "objects":[],
+         "objects":[
+                {
+                 "height":25.9734,
+                 "id":49,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"npcId",
+                         "type":"string",
+                         "value":"transition_girl"
+                        }, 
+                        {
+                         "name":"offsetX",
+                         "type":"string",
+                         "value":"0"
+                        }, 
+                        {
+                         "name":"offsetY",
+                         "type":"string",
+                         "value":"-3"
+                        }, 
+                        {
+                         "name":"outline",
+                         "type":"bool",
+                         "value":true
+                        }, 
+                        {
+                         "name":"texture",
+                         "type":"string",
+                         "value":"npc_transition_girl"
+                        }],
+                 "rotation":0.846792,
+                 "type":"",
+                 "visible":true,
+                 "width":30.536,
+                 "x":33.4592727272727,
+                 "y":78.0133
+                }],
          "opacity":1,
          "type":"objectgroup",
          "visible":true,
@@ -460,6 +497,23 @@
                  "width":5.72727,
                  "x":430.772728636364,
                  "y":-8.27259090909092
+                }, 
+                {
+                 "height":25.5454545454545,
+                 "id":51,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"colliderId",
+                         "type":"string",
+                         "value":"transition_girl"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":23.3636363636364,
+                 "x":37.0909090909091,
+                 "y":77.2727272727273
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -468,7 +522,7 @@
          "y":0
         }],
  "nextlayerid":8,
- "nextobjectid":47,
+ "nextobjectid":52,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

@@ -21,6 +21,18 @@ export function createDialogueManager(scene, { inventory, state, story } = {}) {
       return;
     }
 
+    if (sceneId === "svetaTeacherMoodByState") {
+      const mood = state?.getValue("teacherMood", "neutral") ?? "neutral";
+      const sceneByMood = {
+        good: "svetaTeacherMoodGood",
+        neutral: "svetaTeacherMoodNeutral",
+        bad: "svetaTeacherMoodBad",
+      };
+
+      startScene(sceneByMood[mood] ?? "svetaTeacherMoodNeutral", options);
+      return;
+    }
+
     let sceneData = STORY_SCENES[sceneId];
     if (!sceneData) {
       console.warn(`[dialogueManager] Сцена '${sceneId}' не найдена.`);

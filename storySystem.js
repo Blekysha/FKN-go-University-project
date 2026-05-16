@@ -91,6 +91,8 @@ export function createStorySystem(scene, { state, dialogueManager } = {}) {
     const ignoredSveta = state?.hasFlag("sat_window_after_sveta_advice") ?? false;
     const playedComputer = state?.hasFlag("played_computer_game") ?? false;
     const studied = state?.hasFlag("studied_exam") ?? false;
+    const lateToExam = state?.hasFlag("late_to_exam") ?? false;
+    const veryLateToExam = state?.hasFlag("very_late_to_exam") ?? false;
 
     const svetaBonus = heardSveta ? Math.min(1, Math.max(0, SR)) : 0;
     const socialBonus = Math.floor(Math.max(0, S) / 2);
@@ -108,6 +110,8 @@ export function createStorySystem(scene, { state, dialogueManager } = {}) {
     if (ignoredSveta) score -= 1;
     if (playedComputer) score -= 1;
     if (!studied) score -= 1;
+    if (lateToExam) score -= 2;
+    if (veryLateToExam) score -= 2;
 
     let grade = 3;
     let endingScene = "endingNormal";
@@ -139,6 +143,26 @@ export function createStorySystem(scene, { state, dialogueManager } = {}) {
       endingTone = "disaster";
     }
 
+    if (veryLateToExam) {
+      if (teacherMood === "bad" && effectivePrep < 4) {
+        grade = 2;
+        endingScene = "endingEdge";
+        endingTone = "very_late_bad_mood";
+      } else if (effectivePrep >= 4 && score >= 1) {
+        grade = Math.min(grade, 4);
+        endingScene = grade === 4 ? "endingGood" : "endingNormal";
+        endingTone = "very_late_saved_by_prep";
+      } else {
+        grade = Math.min(grade, 3);
+        endingScene = grade === 3 ? "endingNormal" : "endingEdge";
+        endingTone = "very_late";
+      }
+    } else if (lateToExam && grade > 3) {
+      grade = 3;
+      endingScene = "endingNormal";
+      endingTone = "late";
+    }
+
     const result = {
       preparation: P,
       anxiety: A,
@@ -152,6 +176,8 @@ export function createStorySystem(scene, { state, dialogueManager } = {}) {
       score,
       teacherMood,
       teacherMoodBonus,
+      lateToExam,
+      veryLateToExam,
       grade,
       endingScene,
       endingTone,

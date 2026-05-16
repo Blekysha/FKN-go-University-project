@@ -53,6 +53,61 @@
         }, 
         {
          "draworder":"topdown",
+         "id":6,
+         "name":"Items",
+         "objects":[
+                {
+                 "height":38.625,
+                 "id":64,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"itemId",
+                         "type":"string",
+                         "value":"tetruDoor"
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"interaction"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":36.6875,
+                 "x":276.9375,
+                 "y":64.125
+                }, 
+                {
+                 "height":38.375,
+                 "id":67,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"itemId",
+                         "type":"string",
+                         "value":"universityStairs"
+                        }, 
+                        {
+                         "name":"type",
+                         "type":"string",
+                         "value":"interaction"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":54.1875,
+                 "x":415.53125,
+                 "y":61.3125
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
          "id":3,
          "name":"Doors",
          "objects":[
@@ -465,6 +520,12 @@
                  "height":31.875,
                  "id":56,
                  "name":"",
+                 "properties":[
+                        {
+                         "name":"colliderId",
+                         "type":"string",
+                         "value":"crowd_students"
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -476,6 +537,12 @@
                  "height":29.375,
                  "id":57,
                  "name":"",
+                 "properties":[
+                        {
+                         "name":"colliderId",
+                         "type":"string",
+                         "value":"crowd_students"
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -487,6 +554,12 @@
                  "height":33.75,
                  "id":58,
                  "name":"",
+                 "properties":[
+                        {
+                         "name":"colliderId",
+                         "type":"string",
+                         "value":"crowd_students"
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -498,12 +571,35 @@
                  "height":34.5,
                  "id":59,
                  "name":"",
+                 "properties":[
+                        {
+                         "name":"colliderId",
+                         "type":"string",
+                         "value":"crowd_students"
+                        }],
                  "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":14.375,
                  "x":813.25,
                  "y":74.375
+                }, 
+                {
+                 "height":29.5,
+                 "id":69,
+                 "name":"",
+                 "properties":[
+                        {
+                         "name":"colliderId",
+                         "type":"string",
+                         "value":"exam_student"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":18.125,
+                 "x":683.125,
+                 "y":71.75
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -618,7 +714,7 @@
                         {
                          "name":"texture",
                          "type":"string",
-                         "value":"npc_Professor"
+                         "value":"npc_exam_student"
                         }],
                  "rotation":0.846792,
                  "type":"",
@@ -629,12 +725,12 @@
                 }],
          "opacity":1,
          "type":"objectgroup",
-         "visible":true,
+         "visible":false,
          "x":0,
          "y":0
         }],
- "nextlayerid":6,
- "nextobjectid":63,
+ "nextlayerid":7,
+ "nextobjectid":70,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

@@ -22,7 +22,13 @@ export class DialogueUI {
 
     this.charDelayMs = Number.isFinite(options.charDelayMs)
       ? options.charDelayMs
-      : 42;
+      : 58;
+
+    // Защита от случайного двойного нажатия: как в VN/RPG,
+    // первое нажатие допечатывает строку, следующее — листает дальше.
+    this.minAdvanceDelayMs = Number.isFinite(options.minAdvanceDelayMs)
+      ? options.minAdvanceDelayMs
+      : 420;
 
     this.queue = [];
     this.choices = [];
@@ -35,6 +41,8 @@ export class DialogueUI {
     this.printIndex = 0;
     this.isTyping = false;
     this._typingTimer = null;
+    this._lineShownAt = 0;
+    this._justFinishedTypingAt = 0;
 
     this._onKeyDown = (e) => {
       if (!this.active) return;
@@ -46,8 +54,15 @@ export class DialogueUI {
           return;
         }
 
+        const now = Date.now();
+
         if (this.isTyping) {
+          if (now - this._lineShownAt < this.minAdvanceDelayMs) return;
           this._finishTyping();
+          return;
+        }
+
+        if (now - this._justFinishedTypingAt < this.minAdvanceDelayMs) {
           return;
         }
 
@@ -80,9 +95,7 @@ export class DialogueUI {
     this.currentSpeaker = String(speaker ?? "");
     this.onComplete = onComplete;
 
-    this.nameEl.textContent = this.currentSpeaker
-      ? `${this.currentSpeaker}:`
-      : "";
+    this._setSpeakerName(this.currentSpeaker);
 
     this.textEl.textContent = "";
     this.choicesEl.innerHTML = "";
@@ -93,6 +106,32 @@ export class DialogueUI {
 
     this._setHint();
     this.next();
+  }
+
+  _splitSpeakerPrefix(line) {
+    const text = String(line ?? "");
+
+    // Поддерживает строки формата:
+    // "Васька: текст", "Света: текст", "Семён: текст".
+    // Если префикса нет — используется speaker сцены.
+    const match = text.match(/^([А-ЯЁA-Z][А-ЯЁа-яёA-Za-z0-9 .\-]{1,32}):\s*(.*)$/);
+
+    if (!match) {
+      return {
+        speaker: this.currentSpeaker,
+        text,
+      };
+    }
+
+    return {
+      speaker: match[1],
+      text: match[2],
+    };
+  }
+
+  _setSpeakerName(speaker) {
+    const normalized = String(speaker ?? "").trim();
+    this.nameEl.textContent = normalized ? `${normalized}:` : "";
   }
 
   next() {
@@ -112,9 +151,13 @@ export class DialogueUI {
       return;
     }
 
-    this.currentLine = line;
+    const parsedLine = this._splitSpeakerPrefix(line);
+    this.currentLine = parsedLine.text;
+    this._setSpeakerName(parsedLine.speaker);
     this.printIndex = 0;
     this.textEl.textContent = "";
+    this._lineShownAt = Date.now();
+    this._justFinishedTypingAt = 0;
 
     this._setHint();
     this._startTyping();
@@ -193,7 +236,14 @@ export class DialogueUI {
         return;
       }
 
-      this._typingTimer = window.setTimeout(step, this.charDelayMs);
+      let delay = this.charDelayMs;
+      const lastChar = this.currentLine[this.printIndex - 1];
+
+      if (lastChar === "." || lastChar === "!" || lastChar === "?") delay += 90;
+      if (lastChar === "," || lastChar === "—") delay += 45;
+      if (lastChar === "…") delay += 120;
+
+      this._typingTimer = window.setTimeout(step, delay);
     };
 
     this._typingTimer = window.setTimeout(step, this.charDelayMs);
@@ -202,6 +252,7 @@ export class DialogueUI {
   _finishTyping() {
     this._stopTyping();
     this.textEl.textContent = this.currentLine;
+    this._justFinishedTypingAt = Date.now();
 
     if (this.queue.length > 0) {
       this.hintEl.textContent = "Space / Enter — дальше";
@@ -225,4 +276,4 @@ export class DialogueUI {
   }
 }
 
-export const dialogueUI = new DialogueUI({ charDelayMs: 22 });
+export const dialogueUI = new DialogueUI({ charDelayMs: 58, minAdvanceDelayMs: 420 });
