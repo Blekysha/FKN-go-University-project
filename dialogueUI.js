@@ -44,33 +44,52 @@ export class DialogueUI {
     this._lineShownAt = 0;
     this._justFinishedTypingAt = 0;
 
+    this.advance = () => {
+      if (!this.active) return;
+
+      // Если показаны варианты ответа, тап по фону не должен выбирать случайный вариант.
+      if (this.choicesEl.children.length > 0) {
+        return;
+      }
+
+      const now = Date.now();
+
+      if (this.isTyping) {
+        if (now - this._lineShownAt < this.minAdvanceDelayMs) return;
+        this._finishTyping();
+        return;
+      }
+
+      if (now - this._justFinishedTypingAt < this.minAdvanceDelayMs) {
+        return;
+      }
+
+      this.next();
+    };
+
     this._onKeyDown = (e) => {
       if (!this.active) return;
 
       if (e.code === "Space" || e.code === "Enter") {
         e.preventDefault();
-
-        if (this.choicesEl.children.length > 0) {
-          return;
-        }
-
-        const now = Date.now();
-
-        if (this.isTyping) {
-          if (now - this._lineShownAt < this.minAdvanceDelayMs) return;
-          this._finishTyping();
-          return;
-        }
-
-        if (now - this._justFinishedTypingAt < this.minAdvanceDelayMs) {
-          return;
-        }
-
-        this.next();
+        this.advance();
       }
     };
 
+    this._onPointerAdvance = (e) => {
+      if (!this.active) return;
+
+      // Кнопки выборов обрабатываются отдельно.
+      if (e.target.closest?.(".dialogue-choice-btn")) return;
+
+      e.preventDefault?.();
+      this.advance();
+    };
+
     window.addEventListener("keydown", this._onKeyDown, { passive: false });
+    this.root.addEventListener("pointerdown", this._onPointerAdvance);
+    this.root.addEventListener("touchstart", this._onPointerAdvance, { passive: false });
+    this.root.addEventListener("click", this._onPointerAdvance);
   }
 
   _ensureFontLoaded() {
@@ -193,13 +212,16 @@ export class DialogueUI {
   destroy() {
     this._stopTyping();
     window.removeEventListener("keydown", this._onKeyDown);
+    this.root.removeEventListener("pointerdown", this._onPointerAdvance);
+    this.root.removeEventListener("touchstart", this._onPointerAdvance);
+    this.root.removeEventListener("click", this._onPointerAdvance);
   }
 
   _showChoices() {
     this._stopTyping();
     this.textEl.textContent = this.currentLine || "";
     this.choicesEl.innerHTML = "";
-    this.hintEl.textContent = "Выберите вариант мышкой";
+    this.hintEl.textContent = this._choiceHintText();
 
     this.choices.forEach((choice) => {
       const btn = document.createElement("button");
@@ -207,7 +229,15 @@ export class DialogueUI {
       btn.className = "dialogue-choice-btn";
       btn.textContent = choice.text;
 
-      btn.addEventListener("click", () => {
+      let chosen = false;
+
+      const choose = (event) => {
+        event?.preventDefault?.();
+        event?.stopPropagation?.();
+
+        if (chosen) return;
+        chosen = true;
+
         const selectedChoice = choice;
         const callback = this.onChoice;
 
@@ -216,7 +246,11 @@ export class DialogueUI {
         if (typeof callback === "function") {
           callback(selectedChoice);
         }
-      });
+      };
+
+      // Выбор срабатывает только при обычном click,
+      // чтобы на телефоне можно было зажать палец, увести его и не выбрать случайно.
+      btn.addEventListener("click", choose);
 
       this.choicesEl.appendChild(btn);
     });
@@ -249,17 +283,33 @@ export class DialogueUI {
     this._typingTimer = window.setTimeout(step, this.charDelayMs);
   }
 
+  _isMobileDevice() {
+    return !!window.isMobileControlsDevice;
+  }
+
+  _advanceHintText(action = "дальше") {
+    return this._isMobileDevice()
+      ? `Тап — ${action}`
+      : `Space / Enter — ${action}`;
+  }
+
+  _choiceHintText() {
+    return this._isMobileDevice()
+      ? "Выберите вариант пальцем"
+      : "Выберите вариант мышкой";
+  }
+
   _finishTyping() {
     this._stopTyping();
     this.textEl.textContent = this.currentLine;
     this._justFinishedTypingAt = Date.now();
 
     if (this.queue.length > 0) {
-      this.hintEl.textContent = "Space / Enter — дальше";
+      this.hintEl.textContent = this._advanceHintText("дальше");
     } else if (this.choices.length > 0) {
-      this.hintEl.textContent = "Выберите вариант мышкой";
+      this.hintEl.textContent = this._choiceHintText();
     } else {
-      this.hintEl.textContent = "Space / Enter — закрыть";
+      this.hintEl.textContent = this._advanceHintText("закрыть");
     }
   }
 
@@ -272,7 +322,7 @@ export class DialogueUI {
   }
 
   _setHint() {
-    this.hintEl.textContent = "Space / Enter — допечатать";
+    this.hintEl.textContent = this._advanceHintText("допечатать");
   }
 }
 

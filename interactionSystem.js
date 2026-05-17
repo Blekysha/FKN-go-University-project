@@ -26,6 +26,12 @@ export function createInteractionSystem(
     state?.incCounter("timeSpent", amount);
   }
 
+  function getAdvanceHintText(action = "дальше") {
+    return window.isMobileControlsDevice
+      ? `Тап — ${action}`
+      : `Space / Enter — ${action}`;
+  }
+
   function showBlackScreen(
     text,
     {
@@ -104,7 +110,7 @@ export function createInteractionSystem(
       if (hintEl) {
         hintEl.textContent = showRestartButton
           ? "Начать заново?"
-          : "Space / Enter — дальше";
+          : getAdvanceHintText("дальше");
         hintEl.style.opacity = "0.65";
       }
     };
@@ -129,7 +135,7 @@ export function createInteractionSystem(
       if (lineIndex >= lines.length) {
         timerId = window.setTimeout(revealControls, minSkipDelayMs);
       } else if (hintEl) {
-        hintEl.textContent = "Space / Enter — дальше";
+        hintEl.textContent = getAdvanceHintText("дальше");
         hintEl.style.opacity = "0.65";
       }
     };
@@ -141,7 +147,9 @@ export function createInteractionSystem(
       closed = true;
       clearTimer();
       window.removeEventListener("keydown", onKeyDown);
-      root.removeEventListener("click", close);
+      root.removeEventListener("pointerdown", onPointerAdvance);
+      root.removeEventListener("touchstart", onPointerAdvance);
+      root.removeEventListener("click", onPointerAdvance);
 
       root.style.display = "none";
       root.setAttribute("aria-hidden", "true");
@@ -152,7 +160,7 @@ export function createInteractionSystem(
         restartBtn.onclick = null;
       }
       if (hintEl) {
-        hintEl.textContent = "Space / Enter — дальше";
+        hintEl.textContent = getAdvanceHintText("дальше");
         hintEl.style.opacity = "0.65";
       }
 
@@ -176,7 +184,7 @@ export function createInteractionSystem(
       isTypingLine = true;
       canClose = false;
       if (hintEl) {
-        hintEl.textContent = "Space / Enter — допечатать";
+        hintEl.textContent = getAdvanceHintText("допечатать");
         hintEl.style.opacity = "0.45";
       }
 
@@ -222,10 +230,7 @@ export function createInteractionSystem(
       timerId = window.setTimeout(step, charDelayMs);
     };
 
-    const onKeyDown = (e) => {
-      if (e.code !== "Space" && e.code !== "Enter") return;
-      e.preventDefault();
-
+    const advance = () => {
       if (Date.now() < nextInputAllowedAt) return;
 
       if (isTypingLine) {
@@ -244,8 +249,22 @@ export function createInteractionSystem(
       close();
     };
 
+    const onKeyDown = (e) => {
+      if (e.code !== "Space" && e.code !== "Enter") return;
+      e.preventDefault();
+      advance();
+    };
+
+    const onPointerAdvance = (e) => {
+      if (e.target === restartBtn) return;
+      e.preventDefault?.();
+      advance();
+    };
+
     window.addEventListener("keydown", onKeyDown, { passive: false });
-    root.addEventListener("click", close);
+    root.addEventListener("pointerdown", onPointerAdvance);
+    root.addEventListener("touchstart", onPointerAdvance, { passive: false });
+    root.addEventListener("click", onPointerAdvance);
 
     timerId = window.setTimeout(typeLine, 250);
   }

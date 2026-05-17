@@ -15,10 +15,18 @@
       <button id="startGameBtn" class="start-menu-btn" type="button">Начать игру</button>
       <details class="start-menu-help">
         <summary>Подсказки</summary>
-        <div>Движение: WASD или стрелки</div>
-        <div>Взаимодействие: E</div>
-        <div>Диалоги: Space / Enter</div>
-        <div>В выборах нажимай на нужный вариант мышкой</div>
+        <div class="desktop-help">Движение: WASD или стрелки</div>
+        <div class="desktop-help">Взаимодействие: E</div>
+        <div class="desktop-help">Диалоги: Space / Enter</div>
+        <div class="desktop-help">В выборах нажимай на нужный вариант мышкой</div>
+
+        <div class="mobile-help">Движение: кнопки слева снизу</div>
+        <div class="mobile-help">Взаимодействие: кнопка E справа снизу</div>
+        <div class="mobile-help">Диалоги: тап по экрану</div>
+        <div class="mobile-help">В выборах нажимай пальцем на нужный вариант</div>
+
+        <div class="desktop-help">Когда рядом есть объект для взаимодействия, слева снизу появляется значок глаза.</div>
+        <div class="mobile-help">Когда рядом есть объект для взаимодействия, справа снизу появляется значок глаза.</div>
       </details>
     </div>
   </div>
@@ -112,9 +120,9 @@
   <div id="mobileControls" aria-hidden="true">
     <div class="mobile-dpad">
       <button id="btnUp" class="mobile-btn mobile-up" type="button" aria-label="Вверх">▲</button>
-      <button id="btnLeft" class="mobile-btn mobile-left" type="button" aria-label="Влево">◀</button>
+      <button id="btnLeft" class="mobile-btn mobile-left" type="button" aria-label="Влево">‹</button>
       <button id="btnDown" class="mobile-btn mobile-down" type="button" aria-label="Вниз">▼</button>
-      <button id="btnRight" class="mobile-btn mobile-right" type="button" aria-label="Вправо">▶</button>
+      <button id="btnRight" class="mobile-btn mobile-right" type="button" aria-label="Вправо">›</button>
     </div>
     <button id="btnInteract" class="mobile-btn mobile-interact" type="button" aria-label="Взаимодействовать">E</button>
   </div>
