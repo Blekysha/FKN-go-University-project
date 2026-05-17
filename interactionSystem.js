@@ -329,6 +329,19 @@ export function createInteractionSystem(
     const livesEl = document.getElementById("miniGameLives");
     const infoEl = document.getElementById("miniGameInfo");
 
+    let mobileGameControlsEl = document.getElementById("mobileMiniGameControls");
+    if (!mobileGameControlsEl) {
+      mobileGameControlsEl = document.createElement("div");
+      mobileGameControlsEl.id = "mobileMiniGameControls";
+      mobileGameControlsEl.innerHTML = `
+        <button type="button" data-dir="up" aria-label="Вверх">↑</button>
+        <button type="button" data-dir="left" aria-label="Влево">←</button>
+        <button type="button" data-dir="down" aria-label="Вниз">↓</button>
+        <button type="button" data-dir="right" aria-label="Вправо">→</button>
+      `;
+      playEl?.appendChild(mobileGameControlsEl);
+    }
+
     if (!root || !canvas || !closeBtn || !menuEl || !introEl || !playEl || !overEl) {
       console.warn("[interactionSystem] Не найдены DOM-элементы компьютерного меню.");
       onComplete?.({ playedAny: false });
@@ -340,6 +353,25 @@ export function createInteractionSystem(
     const ctx = canvas.getContext("2d");
     const W = canvas.width;
     const H = canvas.height;
+
+    function getCanvasX(event) {
+      const rect = canvas.getBoundingClientRect();
+      const touch = event.touches?.[0] ?? event.changedTouches?.[0] ?? event;
+      const ratio = W / rect.width;
+      return (touch.clientX - rect.left) * ratio;
+    }
+
+    function getCanvasSwipe(event, start) {
+      const rect = canvas.getBoundingClientRect();
+      const touch = event.changedTouches?.[0] ?? event;
+      const ratioX = W / rect.width;
+      const ratioY = H / rect.height;
+
+      return {
+        dx: (touch.clientX - start.x) * ratioX,
+        dy: (touch.clientY - start.y) * ratioY,
+      };
+    }
 
     const titles = {
       snake: "Змейка",
@@ -382,6 +414,14 @@ export function createInteractionSystem(
 
       root.classList.toggle("is-playing", screen === "play");
       root.classList.toggle("is-focused-game", screen === "intro" || screen === "play" || screen === "pause" || screen === "over");
+
+      if (mobileGameControlsEl) {
+        mobileGameControlsEl.hidden = !(
+          window.isMobileControlsDevice &&
+          screen === "play" &&
+          selectedGame === "snake"
+        );
+      }
     }
 
     function setHeader(title, subtitle) {
@@ -592,12 +632,19 @@ export function createInteractionSystem(
         nextDir = { x: 1, y: 0 };
       }
 
-      function onKeyDown(e) {
-        const code = e.code;
+      function setSnakeDirection(candidate) {
         const now = performance.now();
         if (now - lastInputAt < 28) return;
         lastInputAt = now;
 
+        if (!candidate) return;
+        if (candidate.x === -dir.x && candidate.y === -dir.y) return;
+
+        nextDir = candidate;
+      }
+
+      function onKeyDown(e) {
+        const code = e.code;
         let candidate = null;
 
         if (code === "ArrowLeft" || code === "KeyA") candidate = { x: -1, y: 0 };
@@ -606,19 +653,79 @@ export function createInteractionSystem(
         if (code === "ArrowDown" || code === "KeyS") candidate = { x: 0, y: 1 };
 
         if (!candidate) return;
+        e.preventDefault();
+        setSnakeDirection(candidate);
+      }
 
+      let touchStart = null;
+
+      function onTouchStart(e) {
+        const touch = e.touches?.[0];
+        if (!touch) return;
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        touchStart = {
+          x: touch.clientX - rect.left,
+          y: touch.clientY - rect.top,
+        };
+      }
+
+      function onTouchMove(e) {
+        e.preventDefault();
+      }
+
+      function onTouchEnd(e) {
+        if (!touchStart) return;
         e.preventDefault();
 
-        if (candidate.x === -dir.x && candidate.y === -dir.y) return;
-        nextDir = candidate;
+        const swipe = getCanvasSwipe(e, touchStart);
+        touchStart = null;
+
+        if (Math.max(Math.abs(swipe.dx), Math.abs(swipe.dy)) < 5) return;
+
+        if (Math.abs(swipe.dx) > Math.abs(swipe.dy)) {
+          setSnakeDirection({ x: swipe.dx > 0 ? 1 : -1, y: 0 });
+        } else {
+          setSnakeDirection({ x: 0, y: swipe.dy > 0 ? 1 : -1 });
+        }
+      }
+
+      function onMobileControl(e) {
+        const dirName = e.currentTarget?.dataset?.dir;
+        if (!dirName) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const dirs = {
+          left: { x: -1, y: 0 },
+          right: { x: 1, y: 0 },
+          up: { x: 0, y: -1 },
+          down: { x: 0, y: 1 },
+        };
+
+        setSnakeDirection(dirs[dirName]);
       }
 
       function draw() {
         drawBackground();
 
-        ctx.fillStyle = "#67d17a";
-        for (const part of snake) {
+        for (let i = snake.length - 1; i >= 0; i -= 1) {
+          const part = snake[i];
+          const t = snake.length <= 1 ? 0 : i / (snake.length - 1);
+
+          // Голова темнее, хвост светлее: так легче понять направление.
+          const r = Math.round(42 + t * 70);
+          const g = Math.round(132 + t * 92);
+          const b = Math.round(72 + t * 48);
+
+          ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
           ctx.fillRect(part.x * cell + 2, part.y * cell + 2, cell - 4, cell - 4);
+
+          if (i === 0) {
+            ctx.fillStyle = "rgba(0,0,0,0.28)";
+            ctx.fillRect(part.x * cell + 5, part.y * cell + 5, cell - 10, cell - 10);
+          }
         }
 
         ctx.fillStyle = "#f0c45d";
@@ -626,7 +733,13 @@ export function createInteractionSystem(
         ctx.arc(food.x * cell + cell / 2, food.y * cell + cell / 2, 7, 0, Math.PI * 2);
         ctx.fill();
 
-        updateHud(score, null, "WASD / стрелки — поворот змейки");
+        updateHud(
+          score,
+          null,
+          window.isMobileControlsDevice
+            ? "Управление — стрелками"
+            : "WASD / стрелки — поворот змейки"
+        );
       }
 
       function tick() {
@@ -669,6 +782,13 @@ export function createInteractionSystem(
       }
 
       window.addEventListener("keydown", onKeyDown, { passive: false });
+      canvas.addEventListener("touchstart", onTouchStart, { passive: false });
+      canvas.addEventListener("touchmove", onTouchMove, { passive: false });
+      canvas.addEventListener("touchend", onTouchEnd, { passive: false });
+      mobileGameControlsEl?.querySelectorAll("[data-dir]")?.forEach((btn) => {
+        btn.addEventListener("click", onMobileControl);
+        btn.addEventListener("touchstart", onMobileControl, { passive: false });
+      });
       spawnFood();
       draw();
       tick();
@@ -689,11 +809,19 @@ export function createInteractionSystem(
         stopped = true;
         if (stepTimer != null) window.clearTimeout(stepTimer);
         window.removeEventListener("keydown", onKeyDown);
+        canvas.removeEventListener("touchstart", onTouchStart);
+        canvas.removeEventListener("touchmove", onTouchMove);
+        canvas.removeEventListener("touchend", onTouchEnd);
+        mobileGameControlsEl?.querySelectorAll("[data-dir]")?.forEach((btn) => {
+          btn.removeEventListener("click", onMobileControl);
+          btn.removeEventListener("touchstart", onMobileControl);
+        });
       };
     }
 
     function runCatch() {
       let basketX = W / 2 - 38;
+      let targetBasketX = basketX;
       let score = 0;
       let lives = 3;
       let balls = [];
@@ -714,6 +842,20 @@ export function createInteractionSystem(
         keys[e.code] = false;
       }
 
+      function moveBasketToCanvasX(x) {
+        targetBasketX = Math.max(0, Math.min(W - 76, x - 38));
+      }
+
+      function onTouchMove(e) {
+        e.preventDefault();
+        moveBasketToCanvasX(getCanvasX(e));
+      }
+
+      function onTouchStart(e) {
+        e.preventDefault();
+        moveBasketToCanvasX(getCanvasX(e));
+      }
+
       function spawnBall() {
         balls.push({
           x: 20 + Math.random() * (W - 40),
@@ -731,9 +873,12 @@ export function createInteractionSystem(
           return;
         }
 
-        if (keys.ArrowLeft || keys.KeyA) basketX -= 4;
-        if (keys.ArrowRight || keys.KeyD) basketX += 4;
-        basketX = Math.max(0, Math.min(W - 76, basketX));
+        if (keys.ArrowLeft || keys.KeyA) targetBasketX -= 4;
+        if (keys.ArrowRight || keys.KeyD) targetBasketX += 4;
+        targetBasketX = Math.max(0, Math.min(W - 76, targetBasketX));
+
+        // На телефоне корзинка плавно догоняет палец, а не телепортируется.
+        basketX += (targetBasketX - basketX) * 0.28;
 
         if (t - lastSpawn > 760) {
           spawnBall();
@@ -773,7 +918,13 @@ export function createInteractionSystem(
           return true;
         });
 
-        updateHud(score, lives, "A/D или стрелки — двигать корзинку");
+        updateHud(
+          score,
+          lives,
+          window.isMobileControlsDevice
+            ? "Веди пальцем по полю — двигать корзинку"
+            : "A/D или стрелки — двигать корзинку"
+        );
 
         if (lives <= 0) {
           finishGame(score);
@@ -785,6 +936,8 @@ export function createInteractionSystem(
 
       window.addEventListener("keydown", onKeyDown, { passive: false });
       window.addEventListener("keyup", onKeyUp);
+      canvas.addEventListener("touchstart", onTouchStart, { passive: false });
+      canvas.addEventListener("touchmove", onTouchMove, { passive: false });
       animationId = requestAnimationFrame(loop);
 
       gameController = {
@@ -804,11 +957,14 @@ export function createInteractionSystem(
         cancelAnimationFrame(animationId);
         window.removeEventListener("keydown", onKeyDown);
         window.removeEventListener("keyup", onKeyUp);
+        canvas.removeEventListener("touchstart", onTouchStart);
+        canvas.removeEventListener("touchmove", onTouchMove);
       };
     }
 
     function runPong() {
       let paddleX = W / 2 - 42;
+      let targetPaddleX = paddleX;
       let ballX = W / 2;
       let ballY = H / 2;
       let vx = 2.4;
@@ -831,6 +987,20 @@ export function createInteractionSystem(
         keys[e.code] = false;
       }
 
+      function movePaddleToCanvasX(x) {
+        targetPaddleX = Math.max(0, Math.min(W - 84, x - 42));
+      }
+
+      function onTouchMove(e) {
+        e.preventDefault();
+        movePaddleToCanvasX(getCanvasX(e));
+      }
+
+      function onTouchStart(e) {
+        e.preventDefault();
+        movePaddleToCanvasX(getCanvasX(e));
+      }
+
       function resetBall() {
         ballX = 24 + Math.random() * (W - 48);
         ballY = 28 + Math.random() * 36;
@@ -846,9 +1016,12 @@ export function createInteractionSystem(
           return;
         }
 
-        if (keys.ArrowLeft || keys.KeyA) paddleX -= 4.5;
-        if (keys.ArrowRight || keys.KeyD) paddleX += 4.5;
-        paddleX = Math.max(0, Math.min(W - 84, paddleX));
+        if (keys.ArrowLeft || keys.KeyA) targetPaddleX -= 4.5;
+        if (keys.ArrowRight || keys.KeyD) targetPaddleX += 4.5;
+        targetPaddleX = Math.max(0, Math.min(W - 84, targetPaddleX));
+
+        // На телефоне платформа плавно догоняет палец, а не телепортируется.
+        paddleX += (targetPaddleX - paddleX) * 0.30;
 
         ballX += vx;
         ballY += vy;
@@ -888,12 +1061,20 @@ export function createInteractionSystem(
         ctx.arc(ballX, ballY, 8, 0, Math.PI * 2);
         ctx.fill();
 
-        updateHud(score, lives, "A/D или стрелки — двигать платформу");
+        updateHud(
+          score,
+          lives,
+          window.isMobileControlsDevice
+            ? "Веди пальцем по полю — двигать платформу"
+            : "A/D или стрелки — двигать платформу"
+        );
         animationId = requestAnimationFrame(loop);
       }
 
       window.addEventListener("keydown", onKeyDown, { passive: false });
       window.addEventListener("keyup", onKeyUp);
+      canvas.addEventListener("touchstart", onTouchStart, { passive: false });
+      canvas.addEventListener("touchmove", onTouchMove, { passive: false });
       resetBall();
       animationId = requestAnimationFrame(loop);
 
@@ -914,6 +1095,8 @@ export function createInteractionSystem(
         cancelAnimationFrame(animationId);
         window.removeEventListener("keydown", onKeyDown);
         window.removeEventListener("keyup", onKeyUp);
+        canvas.removeEventListener("touchstart", onTouchStart);
+        canvas.removeEventListener("touchmove", onTouchMove);
       };
     }
 
