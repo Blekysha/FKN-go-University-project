@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>ФКН Go!</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
@@ -105,6 +106,17 @@
         </div>
       </div>
     </div>
+  </div>
+
+
+  <div id="mobileControls" aria-hidden="true">
+    <div class="mobile-dpad">
+      <button id="btnUp" class="mobile-btn mobile-up" type="button" aria-label="Вверх">▲</button>
+      <button id="btnLeft" class="mobile-btn mobile-left" type="button" aria-label="Влево">◀</button>
+      <button id="btnDown" class="mobile-btn mobile-down" type="button" aria-label="Вниз">▼</button>
+      <button id="btnRight" class="mobile-btn mobile-right" type="button" aria-label="Вправо">▶</button>
+    </div>
+    <button id="btnInteract" class="mobile-btn mobile-interact" type="button" aria-label="Взаимодействовать">E</button>
   </div>
 
   <script type="module" src="main.js"></script>

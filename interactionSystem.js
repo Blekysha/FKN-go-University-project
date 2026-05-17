@@ -1593,7 +1593,14 @@ export function createInteractionSystem(
   /* ===== НАЖАТИЕ E ===== */
 
   function handleInteract() {
-    if (!Phaser.Input.Keyboard.JustDown(keyE)) return;
+    const mobile = window.mobileInput ?? {};
+    const mobileInteract = !!mobile.interact;
+
+    if (!Phaser.Input.Keyboard.JustDown(keyE) && !mobileInteract) return;
+
+    if (mobileInteract) {
+      mobile.interact = false;
+    }
 
     if (dialogueUI.isOpen() || blackScreenActive || miniGameActive) return;
 

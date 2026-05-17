@@ -9,6 +9,65 @@
 */
 import { GameScene } from "./GameScene.js";
 
+
+function initMobileControls() {
+  window.mobileInput = window.mobileInput ?? {
+    up: false,
+    down: false,
+    left: false,
+    right: false,
+    interact: false,
+  };
+
+  const bindHoldButton = (id, key) => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+
+    const press = (event) => {
+      event.preventDefault();
+      window.mobileInput[key] = true;
+      btn.classList.add("is-pressed");
+    };
+
+    const release = (event) => {
+      event?.preventDefault?.();
+      window.mobileInput[key] = false;
+      btn.classList.remove("is-pressed");
+    };
+
+    btn.addEventListener("touchstart", press, { passive: false });
+    btn.addEventListener("touchend", release, { passive: false });
+    btn.addEventListener("touchcancel", release, { passive: false });
+    btn.addEventListener("pointerdown", press);
+    btn.addEventListener("pointerup", release);
+    btn.addEventListener("pointerleave", release);
+  };
+
+  const bindTapButton = (id, key) => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+
+    const tap = (event) => {
+      event.preventDefault();
+      window.mobileInput[key] = true;
+      btn.classList.add("is-pressed");
+      window.setTimeout(() => btn.classList.remove("is-pressed"), 120);
+    };
+
+    btn.addEventListener("touchstart", tap, { passive: false });
+    btn.addEventListener("pointerdown", tap);
+  };
+
+  bindHoldButton("btnUp", "up");
+  bindHoldButton("btnDown", "down");
+  bindHoldButton("btnLeft", "left");
+  bindHoldButton("btnRight", "right");
+  bindTapButton("btnInteract", "interact");
+}
+
+initMobileControls();
+
+
 const config = {
   type: Phaser.AUTO,
   parent: "game", // <-- добавить

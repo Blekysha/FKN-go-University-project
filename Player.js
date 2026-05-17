@@ -40,10 +40,12 @@ export function createPlayer(scene, x, y) {
 
       if (blocked) return;
 
-      const left = controls.left?.isDown || controls.A?.isDown;
-      const right = controls.right?.isDown || controls.D?.isDown;
-      const up = controls.up?.isDown || controls.W?.isDown;
-      const down = controls.down?.isDown || controls.S?.isDown;
+      const mobile = window.mobileInput ?? {};
+
+      const left = controls.left?.isDown || controls.A?.isDown || mobile.left;
+      const right = controls.right?.isDown || controls.D?.isDown || mobile.right;
+      const up = controls.up?.isDown || controls.W?.isDown || mobile.up;
+      const down = controls.down?.isDown || controls.S?.isDown || mobile.down;
 
       if (left) {
         sprite.setVelocityX(-speed);
