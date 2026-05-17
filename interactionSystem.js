@@ -220,7 +220,8 @@ export function createInteractionSystem(
 
         let delay = charDelayMs;
         const lastChar = line[charIndex - 1];
-        if (lastChar === "." || lastChar === "!" || lastChar === "?") delay += 55;
+        if (lastChar === "." || lastChar === "!" || lastChar === "?")
+          delay += 55;
         if (lastChar === "," || lastChar === "—") delay += 25;
         if (lastChar === "…") delay += 80;
 
@@ -268,7 +269,6 @@ export function createInteractionSystem(
 
     timerId = window.setTimeout(typeLine, 250);
   }
-
 
   function getBestScore(gameType) {
     return Number(state?.getValue(`best_${gameType}_score`, 0) ?? 0);
@@ -329,7 +329,9 @@ export function createInteractionSystem(
     const livesEl = document.getElementById("miniGameLives");
     const infoEl = document.getElementById("miniGameInfo");
 
-    let mobileGameControlsEl = document.getElementById("mobileMiniGameControls");
+    let mobileGameControlsEl = document.getElementById(
+      "mobileMiniGameControls"
+    );
     if (!mobileGameControlsEl) {
       mobileGameControlsEl = document.createElement("div");
       mobileGameControlsEl.id = "mobileMiniGameControls";
@@ -342,8 +344,18 @@ export function createInteractionSystem(
       playEl?.appendChild(mobileGameControlsEl);
     }
 
-    if (!root || !canvas || !closeBtn || !menuEl || !introEl || !playEl || !overEl) {
-      console.warn("[interactionSystem] Не найдены DOM-элементы компьютерного меню.");
+    if (
+      !root ||
+      !canvas ||
+      !closeBtn ||
+      !menuEl ||
+      !introEl ||
+      !playEl ||
+      !overEl
+    ) {
+      console.warn(
+        "[interactionSystem] Не найдены DOM-элементы компьютерного меню."
+      );
       onComplete?.({ playedAny: false });
       return;
     }
@@ -413,7 +425,13 @@ export function createInteractionSystem(
       overEl.hidden = screen !== "over";
 
       root.classList.toggle("is-playing", screen === "play");
-      root.classList.toggle("is-focused-game", screen === "intro" || screen === "play" || screen === "pause" || screen === "over");
+      root.classList.toggle(
+        "is-focused-game",
+        screen === "intro" ||
+          screen === "play" ||
+          screen === "pause" ||
+          screen === "over"
+      );
 
       if (mobileGameControlsEl) {
         mobileGameControlsEl.hidden = !(
@@ -503,7 +521,9 @@ export function createInteractionSystem(
       setHeader(titles[gameType], "Раунд завершён");
       if (resultTitleEl) resultTitleEl.textContent = "Игра окончена";
       if (resultTextEl) {
-        resultTextEl.textContent = `Счёт: ${score}. Лучший счёт: ${getBestScore(gameType)}.`;
+        resultTextEl.textContent = `Счёт: ${score}. Лучший счёт: ${getBestScore(
+          gameType
+        )}.`;
       }
 
       setScreen("over");
@@ -603,7 +623,11 @@ export function createInteractionSystem(
 
     function runSnake() {
       const cell = 20;
-      let snake = [{ x: 8, y: 7 }, { x: 7, y: 7 }, { x: 6, y: 7 }];
+      let snake = [
+        { x: 8, y: 7 },
+        { x: 7, y: 7 },
+        { x: 6, y: 7 },
+      ];
       let dir = { x: 1, y: 0 };
       let nextDir = { x: 1, y: 0 };
       let food = { x: 14, y: 8 };
@@ -627,7 +651,11 @@ export function createInteractionSystem(
       }
 
       function resetPositionAfterHit() {
-        snake = [{ x: 8, y: 7 }, { x: 7, y: 7 }, { x: 6, y: 7 }];
+        snake = [
+          { x: 8, y: 7 },
+          { x: 7, y: 7 },
+          { x: 6, y: 7 },
+        ];
         dir = { x: 1, y: 0 };
         nextDir = { x: 1, y: 0 };
       }
@@ -647,8 +675,10 @@ export function createInteractionSystem(
         const code = e.code;
         let candidate = null;
 
-        if (code === "ArrowLeft" || code === "KeyA") candidate = { x: -1, y: 0 };
-        if (code === "ArrowRight" || code === "KeyD") candidate = { x: 1, y: 0 };
+        if (code === "ArrowLeft" || code === "KeyA")
+          candidate = { x: -1, y: 0 };
+        if (code === "ArrowRight" || code === "KeyD")
+          candidate = { x: 1, y: 0 };
         if (code === "ArrowUp" || code === "KeyW") candidate = { x: 0, y: -1 };
         if (code === "ArrowDown" || code === "KeyS") candidate = { x: 0, y: 1 };
 
@@ -720,17 +750,33 @@ export function createInteractionSystem(
           const b = Math.round(72 + t * 48);
 
           ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-          ctx.fillRect(part.x * cell + 2, part.y * cell + 2, cell - 4, cell - 4);
+          ctx.fillRect(
+            part.x * cell + 2,
+            part.y * cell + 2,
+            cell - 4,
+            cell - 4
+          );
 
           if (i === 0) {
             ctx.fillStyle = "rgba(0,0,0,0.28)";
-            ctx.fillRect(part.x * cell + 5, part.y * cell + 5, cell - 10, cell - 10);
+            ctx.fillRect(
+              part.x * cell + 5,
+              part.y * cell + 5,
+              cell - 10,
+              cell - 10
+            );
           }
         }
 
         ctx.fillStyle = "#f0c45d";
         ctx.beginPath();
-        ctx.arc(food.x * cell + cell / 2, food.y * cell + cell / 2, 7, 0, Math.PI * 2);
+        ctx.arc(
+          food.x * cell + cell / 2,
+          food.y * cell + cell / 2,
+          7,
+          0,
+          Math.PI * 2
+        );
         ctx.fill();
 
         updateHud(
@@ -901,9 +947,7 @@ export function createInteractionSystem(
 
         balls = balls.filter((b) => {
           const caught =
-            b.y + b.r >= H - 30 &&
-            b.x >= basketX &&
-            b.x <= basketX + 76;
+            b.y + b.r >= H - 30 && b.x >= basketX && b.x <= basketX + 76;
 
           if (caught) {
             score += 1;
@@ -1021,7 +1065,7 @@ export function createInteractionSystem(
         targetPaddleX = Math.max(0, Math.min(W - 84, targetPaddleX));
 
         // На телефоне платформа плавно догоняет палец, а не телепортируется.
-        paddleX += (targetPaddleX - paddleX) * 0.30;
+        paddleX += (targetPaddleX - paddleX) * 0.3;
 
         ballX += vx;
         ballY += vy;
@@ -1206,7 +1250,8 @@ export function createInteractionSystem(
         textureKey === "npc_crowd_students";
 
       if (
-        (state.hasFlag("very_late_to_exam") && (isExamStudent || isCrowdStudents)) ||
+        (state.hasFlag("very_late_to_exam") &&
+          (isExamStudent || isCrowdStudents)) ||
         (state.hasFlag("late_to_exam") && isExamStudent)
       ) {
         zone.npcData?.sprite?.destroy?.();
@@ -1446,17 +1491,22 @@ export function createInteractionSystem(
         return;
       }
 
-      dialogueManager.startScene(state.hasFlag("late_to_exam") ? "audienceLateEntry" : "audienceTimeSkip", {
-        onComplete: () => {
-          state.setFlag("entered_audience");
-          state.setValue("currentGoal", "exam");
-          if (d?.targetMap === "university_corridor") {
-      updateExamLatenessFlags();
-    }
+      dialogueManager.startScene(
+        state.hasFlag("late_to_exam")
+          ? "audienceLateEntry"
+          : "audienceTimeSkip",
+        {
+          onComplete: () => {
+            state.setFlag("entered_audience");
+            state.setValue("currentGoal", "exam");
+            if (d?.targetMap === "university_corridor") {
+              updateExamLatenessFlags();
+            }
 
-    levelManager.load(d.targetMap, d.targetSpawn);
-        },
-      });
+            levelManager.load(d.targetMap, d.targetSpawn);
+          },
+        }
+      );
 
       return;
     }
@@ -1469,7 +1519,7 @@ export function createInteractionSystem(
     if (d.locked && !inventory.has(d.keyId)) {
       dialogueUI.show({
         speaker: "Система",
-        lines: ["Заперто.", `Нужен ключ: ${d.keyId}`],
+        lines: ["Заперто. Нужно найти ключ."],
       });
       return;
     }
@@ -1578,15 +1628,15 @@ export function createInteractionSystem(
               "Ответ складывается наспех — не так, как хотелось, но лучше, чем молчать.",
             ]
           : state.hasFlag("late_to_exam")
-            ? [
-                "Времени меньше, чем должно быть.",
-                "Васька быстро пробегает глазами билет.",
-                "Мысли путаются сильнее обычного, но постепенно ответ всё-таки собирается.",
-              ]
-            : [
-                "Перед ним билет, черновик и несколько минут на подготовку.",
-                "Мысли путаются, но постепенно ответ складывается в голове.",
-              ]),
+          ? [
+              "Времени меньше, чем должно быть.",
+              "Васька быстро пробегает глазами билет.",
+              "Мысли путаются сильнее обычного, но постепенно ответ всё-таки собирается.",
+            ]
+          : [
+              "Перед ним билет, черновик и несколько минут на подготовку.",
+              "Мысли путаются, но постепенно ответ складывается в голове.",
+            ]),
       ];
 
       showBlackScreen(deskLines, {
@@ -1612,7 +1662,7 @@ export function createInteractionSystem(
     ) {
       dialogueUI.show({
         speaker: "",
-        lines: ["Опа, ключик!"],
+        lines: ["Опа, а вот и ключик!"],
       });
       return;
     }
@@ -1756,12 +1806,12 @@ export function createInteractionSystem(
                     "Даже хороший ответ уже не мог спасти ситуацию полностью.",
                   ]
                 : isLate
-                  ? [
-                      "",
-                      "Опоздание Семяниный явно заметил.",
-                      "И, конечно, не забыл.",
-                    ]
-                  : [];
+                ? [
+                    "",
+                    "Опоздание Семяниный явно заметил.",
+                    "И, конечно, не забыл.",
+                  ]
+                : [];
 
               const finalLines = [
                 ...(toneLines[grade] ?? toneLines[3]),
@@ -1833,7 +1883,10 @@ export function createInteractionSystem(
 
   function enforceLateCorridorNpcsHidden() {
     const mapKey = levelManager.getCurrentMapKey?.() ?? null;
-    if (mapKey === "university_corridor" && state.hasFlag("very_late_to_exam")) {
+    if (
+      mapKey === "university_corridor" &&
+      state.hasFlag("very_late_to_exam")
+    ) {
       hideLateCorridorNpcs();
     }
   }
